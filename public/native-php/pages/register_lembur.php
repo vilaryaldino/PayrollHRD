@@ -68,23 +68,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'uang_makan' => $uangMakan,
     ];
 }
+
+$displaySummary = $summary ?: [
+    'pegawai' => '—',
+    'tanggal' => date('Y-m-d'),
+    'jam_mulai' => '—',
+    'jam_selesai' => '—',
+    'hari' => 'Hari Kerja',
+    'jenis_spl' => 'SPL Jam Lembur',
+    'catatan' => '',
+    'lembur_di_luar_jam_kerja' => 0,
+    'uang_makan' => 0,
+];
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<style>
+.lembur-card {
+    background:#fff; border-radius:12px;
+    box-shadow:0 2px 12px rgba(0,0,0,.07);
+    overflow:hidden; border:1px solid #e8edf2;
+}
+.lembur-card .card-header {
+    padding:.85rem 1.5rem !important;
+    border-bottom:1px solid #e8edf2 !important;
+}
+.lembur-card .card-body { padding:1.5rem !important; }
+.lembur-form .form-label {
+    color:#475569; font-size:.72rem; margin-bottom:.35rem;
+    text-transform:uppercase; letter-spacing:.03em;
+}
+.lembur-form .form-control,
+.lembur-form .form-select {
+    min-height:38px; border-color:#d8e1ec; border-radius:7px;
+    color:#334155; font-size:.82rem;
+}
+.lembur-form textarea.form-control { min-height:74px; }
+.lembur-form .form-control:focus,
+.lembur-form .form-select:focus {
+    border-color:#93c5fd; box-shadow:0 0 0 3px rgba(59,130,246,.1);
+}
+.lembur-rule {
+    background:#fffbeb; border:1px solid #fcd34d; border-radius:7px;
+    color:#92400e; font-size:.68rem; line-height:1.45; padding:.6rem .75rem;
+}
+.lembur-summary .card-body { padding:1rem !important; }
+.lembur-summary-list { margin:0; }
+.lembur-summary-item {
+    display:flex; justify-content:space-between; align-items:center;
+    gap:1rem; padding:.45rem 0; border-bottom:1px solid #eef2f7;
+    font-size:.72rem;
+}
+.lembur-summary-item:last-child { border-bottom:0; }
+.lembur-summary-item dt { color:#94a3b8; font-weight:400; }
+.lembur-summary-item dd { color:#1e293b; font-weight:600; margin:0; text-align:right; }
+.lembur-metric { border-radius:10px; min-height:54px; }
+.lembur-metric .card-body { padding:.7rem .85rem !important; }
+.lembur-metric .metric-icon {
+    width:28px; height:28px; display:inline-flex; align-items:center;
+    justify-content:center; border-radius:8px; margin-right:.5rem;
+}
+.lembur-metric .metric-label { color:#94a3b8; font-size:.65rem; }
+.lembur-metric .metric-value { color:#1e293b; font-size:.82rem; font-weight:700; }
+.lembur-policy { font-size:.67rem; line-height:1.45; }
+.lembur-card .table thead th {
+    background:#f1f5f9; color:#475569;
+    font-size:.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.05em;
+    padding:.8rem 1.2rem; border:none;
+    border-bottom:2px solid #e2e8f0;
+}
+.lembur-card .table tbody td {
+    padding:.85rem 1.2rem; border-color:#f1f5f9;
+    vertical-align:middle; font-size:.87rem; color:#334155;
+}
+.lembur-card .table tbody tr:last-child td { border-bottom:none; }
+.lembur-card .table tbody tr:hover { background:#f8fafc; }
+
+@media (max-width: 767.98px) {
+    .lembur-card .card-header { padding:.85rem 1rem !important; }
+    .lembur-card .card-body { padding:1rem !important; }
+}
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
-        <h2 class="h3 text-gray-800 m-0">Register Lembur</h2>
-        <small class="text-muted">Sistem perhitungan lembur, SPL, dan uang makan</small>
+        <h2 class="h3 text-gray-800 m-0" style="font-size:1.35rem;font-weight:700;">Register Lembur</h2>
+        <small class="text-muted" style="font-size:.75rem;">Sistem perhitungan lembur, SPL, dan uang makan</small>
     </div>
     <span class="text-muted"><i class="bi bi-calendar-day"></i> <?php echo date('d F Y'); ?></span>
 </div>
 
-<div class="row g-4">
-    <div class="col-xl-5">
-        <div class="card border-0 shadow-sm rounded-4">
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card lembur-card h-100">
             <div class="card-header bg-white border-0 py-3 px-4">
                 <h5 class="m-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Form Lembur</h5>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body p-4 lembur-form">
                 <form method="POST" action="?page=register_lembur">
                     <div class="mb-3">
                         <label for="pegawai" class="form-label fw-semibold">Nama Pegawai</label>
@@ -140,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4 gap-3 flex-wrap">
-                        <span class="text-muted small">Aturan: lembur dihitung setelah pukul 17.00 dan uang makan diberikan jika melewati pukul 20.00</span>
+                        <span class="lembur-rule grow"><i class="bi bi-info-circle me-1"></i>Aturan Perhitungan: Lembur dihitung setelah pukul 17.00. Uang makan sebesar Rp 15.000 diberikan apabila jam selesai melewati pukul 20.00.</span>
                         <button type="submit" class="btn btn-warning text-white fw-semibold px-4">
                             <i class="bi bi-save me-2"></i> Simpan Register
                         </button>
@@ -150,88 +230,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <div class="col-xl-7">
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="col-xl-4">
+        <div class="card lembur-card lembur-summary mb-3">
             <div class="card-header bg-white border-0 py-3 px-4">
                 <h5 class="m-0 fw-bold text-warning"><i class="bi bi-calculator me-2"></i>Ringkasan Perhitungan</h5>
             </div>
             <div class="card-body p-4">
-                <?php if ($submitted && $summary): ?>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 h-100 bg-light">
-                                <div class="text-muted small">Pegawai</div>
-                                <div class="fw-bold fs-6"><?php echo htmlspecialchars($summary['pegawai']); ?></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 h-100 bg-light">
-                                <div class="text-muted small">Tanggal</div>
-                                <div class="fw-bold fs-6"><?php echo date('d F Y', strtotime($summary['tanggal'])); ?></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 h-100 bg-light">
-                                <div class="text-muted small">Jam Kerja</div>
-                                <div class="fw-bold fs-6"><?php echo htmlspecialchars($summary['jam_mulai']); ?> - <?php echo htmlspecialchars($summary['jam_selesai']); ?></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 h-100 bg-light">
-                                <div class="text-muted small">Jenis SPL</div>
-                                <div class="fw-bold fs-6"><?php echo htmlspecialchars($summary['jenis_spl']); ?></div>
-                            </div>
-                        </div>
+                <dl class="lembur-summary-list">
+                    <div class="lembur-summary-item">
+                        <dt>Pegawai</dt>
+                        <dd><?php echo htmlspecialchars($displaySummary['pegawai']); ?></dd>
                     </div>
+                    <div class="lembur-summary-item">
+                        <dt>Tanggal</dt>
+                        <dd><?php echo date('d F Y', strtotime($displaySummary['tanggal'])); ?></dd>
+                    </div>
+                    <div class="lembur-summary-item">
+                        <dt>Jam Kerja</dt>
+                        <dd><?php echo htmlspecialchars($displaySummary['jam_mulai']); ?><?php echo $displaySummary['jam_selesai'] !== '—' ? ' - ' . htmlspecialchars($displaySummary['jam_selesai']) : ''; ?></dd>
+                    </div>
+                    <div class="lembur-summary-item">
+                        <dt>Jenis SPL</dt>
+                        <dd><?php echo htmlspecialchars($displaySummary['jenis_spl']); ?></dd>
+                    </div>
+                </dl>
 
-                    <div class="mt-4 row g-3">
+                    <div class="mt-3 row g-2">
                         <div class="col-md-4">
-                            <div class="card border-0 bg-primary bg-opacity-10 h-100">
-                                <div class="card-body">
-                                    <div class="text-primary small fw-semibold">Total Lembur</div>
-                                    <div class="fs-4 fw-bold text-primary">
-                                        <?php echo formatJam($summary['lembur_di_luar_jam_kerja']); ?>
-                                    </div>
+                            <div class="card lembur-metric border-0 bg-warning bg-opacity-10 h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="metric-icon bg-warning bg-opacity-25 text-warning"><i class="bi bi-clock"></i></span>
+                                    <div><div class="metric-label">Total Lembur</div><div class="metric-value"><?php echo formatJam($displaySummary['lembur_di_luar_jam_kerja']); ?></div></div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card border-0 bg-success bg-opacity-10 h-100">
-                                <div class="card-body">
-                                    <div class="text-success small fw-semibold">Hari</div>
-                                    <div class="fs-4 fw-bold text-success"><?php echo htmlspecialchars($summary['hari']); ?></div>
+                            <div class="card lembur-metric border-0 bg-primary bg-opacity-10 h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="metric-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-calendar3"></i></span>
+                                    <div><div class="metric-label">Hari</div><div class="metric-value"><?php echo htmlspecialchars($displaySummary['hari']); ?></div></div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card border-0 bg-warning bg-opacity-10 h-100">
-                                <div class="card-body">
-                                    <div class="text-warning small fw-semibold">Uang Makan</div>
-                                    <div class="fs-4 fw-bold text-warning">
-                                        <?php echo $summary['uang_makan'] > 0 ? 'Rp ' . number_format($summary['uang_makan'], 0, ',', '.') : 'Rp 0'; ?>
-                                    </div>
+                            <div class="card lembur-metric border-0 bg-light h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="metric-icon bg-secondary bg-opacity-10 text-dark"><i class="bi bi-currency-dollar"></i></span>
+                                    <div><div class="metric-label">Uang Makan</div><div class="metric-value"><?php echo $displaySummary['uang_makan'] > 0 ? 'Rp ' . number_format($displaySummary['uang_makan'], 0, ',', '.') : 'Rp 0'; ?></div></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="alert alert-info mt-4 mb-0 border-0 shadow-sm">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <?php if ($summary['uang_makan'] > 0): ?>
+                    <div class="alert alert-info lembur-policy mt-3 mb-0 border-0">
+                        <strong><i class="bi bi-info-circle-fill me-1"></i> Kebijakan Uang Makan</strong><br>
+                        <?php if ($displaySummary['uang_makan'] > 0): ?>
                             Lembur melewati pukul 20.00, sehingga pegawai berhak mendapatkan uang makan sebesar <strong>Rp 15.000</strong>.
                         <?php else: ?>
-                            Lembur belum melewati pukul 20.00, maka tidak mendapatkan uang makan tambahan.
+                            Uang makan sebesar Rp 15.000 diberikan kepada pegawai yang menyelesaikan lembur melewati pukul 20.00.
                         <?php endif; ?>
                     </div>
-                <?php else: ?>
-                    <div class="alert alert-light border mb-0">
-                        <i class="bi bi-hourglass-split me-2"></i> Isi form di sebelah kiri untuk menghitung lembur, SPL, dan uang makan.
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-4">
+        <div class="card lembur-card">
             <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
                 <h5 class="m-0 fw-bold text-dark"><i class="bi bi-table me-2"></i>Daftar Register Lembur</h5>
                 <span class="badge bg-warning text-dark"><?php echo count($pegawaiList); ?> Pegawai</span>
