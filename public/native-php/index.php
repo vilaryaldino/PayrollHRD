@@ -1,7 +1,17 @@
 <?php
+ob_start();
 session_start();
+
 // index.php - Main Router
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+$pagePath = 'pages/' . $page . '.php';
+
+// Jika ada request POST, eksekusi file page SEBELUM menghasilkan output HTML apapun
+// Ini menjamin header("Location: ...") dapat berjalan bersih tanpa "headers already sent"
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && file_exists($pagePath)) {
+    include $pagePath;
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,8 +49,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             <!-- Main Content -->
             <div class="container-fluid p-4">
                 <?php
-                // Router logic
-                $pagePath = 'pages/' . $page . '.php';
                 if (file_exists($pagePath)) {
                     include $pagePath;
                 } else {
@@ -54,3 +62,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     <?php include 'includes/footer.php'; ?>
 </body>
 </html>
+<?php
+ob_end_flush();
+?>

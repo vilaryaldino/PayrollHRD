@@ -1,13 +1,17 @@
 <?php
 $currentPage = 'register_lembur';
+require_once __DIR__ . '/../includes/db.php';
 
-$pegawaiList = [
-    'Andi Wijaya',
-    'Budi Santoso',
-    'Citra Lestari',
-    'Dewi Anggraini',
-    'Eko Prasetyo',
-];
+// Ambil daftar pegawai aktif dari database MySQL
+try {
+    $stmtPeg = $pdo->query("SELECT NM_PEGAWAI FROM M_PEGAWAI WHERE IS_AKTIF = 1 ORDER BY NM_PEGAWAI ASC");
+    $pegawaiList = $stmtPeg->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    $pegawaiList = ['Budi Santoso', 'Siti Aminah', 'Agus Setiawan', 'Dewi Rahayu', 'Rendi Pratama'];
+}
+if (empty($pegawaiList)) {
+    $pegawaiList = ['Budi Santoso', 'Siti Aminah', 'Agus Setiawan', 'Dewi Rahayu', 'Rendi Pratama'];
+}
 
 function formatJam($value)
 {
@@ -33,7 +37,7 @@ function formatJam($value)
 $submitted = false;
 $summary = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $submitted = true;
 
     $pegawai = trim($_POST['pegawai'] ?? '');

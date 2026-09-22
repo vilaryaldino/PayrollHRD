@@ -1,89 +1,183 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 text-gray-800 m-0">Dashboard</h2>
-    <span class="text-muted"><i class="bi bi-calendar-day"></i> <?php echo date('d F Y'); ?></span>
+<?php
+// pages/dashboard.php - Real-time statistics dari database MySQL payrollhrd
+require_once __DIR__ . '/../includes/db.php';
+
+// Ambil data statistik dari database MySQL
+$totalPegawai   = $pdo->query("SELECT COUNT(*) FROM M_PEGAWAI")->fetchColumn();
+$totalAktif     = $pdo->query("SELECT COUNT(*) FROM M_PEGAWAI WHERE IS_AKTIF = 1")->fetchColumn();
+$totalShift     = $pdo->query("SELECT COUNT(*) FROM M_SHIFT")->fetchColumn();
+$totalLibur     = $pdo->query("SELECT COUNT(*) FROM M_LIBUR_NASIONAL WHERE YEAR(TANGGAL) = YEAR(CURDATE())")->fetchColumn();
+$jadwalHariIni  = $pdo->query("SELECT COUNT(*) FROM T_JADWAL_KERJA WHERE TANGGAL = CURDATE() AND STATUS_KERJA = 'Kerja'")->fetchColumn();
+
+// Ambil libur terdekat
+$stmtNextLibur = $pdo->query("SELECT KETERANGAN, TANGGAL FROM M_LIBUR_NASIONAL WHERE TANGGAL >= CURDATE() ORDER BY TANGGAL ASC LIMIT 1");
+$nextLibur = $stmtNextLibur->fetch();
+?>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="h3 text-gray-800 m-0">Dashboard HRD</h2>
+        <small class="text-muted">Ringkasan operasional data kepegawaian dan jadwal shift</small>
+    </div>
+    <span class="badge bg-light text-dark border p-2"><i class="bi bi-calendar-event me-1 text-primary"></i> <?= date('d F Y'); ?></span>
 </div>
 
 <!-- Summary Cards Row -->
-<div class="row mb-4">
+<div class="row g-3 mb-4">
     <!-- Total Pegawai Card -->
-    <div class="col-xl-4 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6">
         <div class="card border-0 shadow-sm h-100 py-2 border-start border-primary border-4 rounded-3">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.85rem; font-weight: 700;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.8rem; font-weight: 700;">
                             Total Pegawai
                         </div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800">150</div>
+                        <div class="h3 mb-0 font-weight-bold text-dark"><?= $totalPegawai ?></div>
+                        <small class="text-success"><i class="bi bi-check-circle"></i> <?= $totalAktif ?> Aktif</small>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-people fa-2x text-muted opacity-50" style="font-size: 2.5rem;"></i>
+                    <div>
+                        <i class="bi bi-people text-primary opacity-50" style="font-size: 2.2rem;"></i>
                     </div>
                 </div>
             </div>
             <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="?page=pegawai" class="text-decoration-none text-primary" style="font-size: 0.85rem;">Lihat Detail <i class="bi bi-arrow-right"></i></a>
+                <a href="?page=pegawai" class="text-decoration-none text-primary small">Kelola Pegawai <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
 
-    <!-- Total Absen Hari Ini Card -->
-    <div class="col-xl-4 col-md-6 mb-4">
+    <!-- Jadwal Kerja Hari Ini Card -->
+    <div class="col-xl-3 col-md-6">
         <div class="card border-0 shadow-sm h-100 py-2 border-start border-success border-4 rounded-3">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.85rem; font-weight: 700;">
-                            Total Absen Hari Ini
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.8rem; font-weight: 700;">
+                            Jadwal Kerja Hari Ini
                         </div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800">142</div>
+                        <div class="h3 mb-0 font-weight-bold text-dark"><?= $jadwalHariIni ?></div>
+                        <small class="text-muted">Pegawai terjadwal shift</small>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-person-check fa-2x text-muted opacity-50" style="font-size: 2.5rem;"></i>
+                    <div>
+                        <i class="bi bi-calendar-check text-success opacity-50" style="font-size: 2.2rem;"></i>
                     </div>
                 </div>
             </div>
             <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="?page=absen" class="text-decoration-none text-success" style="font-size: 0.85rem;">Lihat Detail <i class="bi bi-arrow-right"></i></a>
+                <a href="?page=jadwal" class="text-decoration-none text-success small">Lihat Roster <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
 
-    <!-- Total Lembur Card -->
-    <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 py-2 border-start border-warning border-4 rounded-3">
+    <!-- Master Shift Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 py-2 border-start border-info border-4 rounded-3">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1" style="font-size: 0.85rem; font-weight: 700;">
-                            Total Lembur (Bulan Ini)
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.8rem; font-weight: 700;">
+                            Master Shift
                         </div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800">24 Jam</div>
+                        <div class="h3 mb-0 font-weight-bold text-dark"><?= $totalShift ?></div>
+                        <small class="text-muted">Pola jam kerja</small>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-moon-stars fa-2x text-muted opacity-50" style="font-size: 2.5rem;"></i>
+                    <div>
+                        <i class="bi bi-clock-history text-info opacity-50" style="font-size: 2.2rem;"></i>
                     </div>
                 </div>
             </div>
             <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="?page=register_lembur" class="text-decoration-none text-warning" style="font-size: 0.85rem;">Lihat Detail <i class="bi bi-arrow-right"></i></a>
+                <a href="?page=shift" class="text-decoration-none text-info small">Atur Shift <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libur Nasional Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 py-2 border-start border-danger border-4 rounded-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1" style="font-size: 0.8rem; font-weight: 700;">
+                            Libur Nasional <?= date('Y') ?>
+                        </div>
+                        <div class="h3 mb-0 font-weight-bold text-dark"><?= $totalLibur ?></div>
+                        <small class="text-muted text-truncate d-block" style="max-width: 140px;">
+                            <?= $nextLibur ? htmlspecialchars($nextLibur['KETERANGAN']) : 'Tidak ada agenda' ?>
+                        </small>
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar-event text-danger opacity-50" style="font-size: 2.2rem;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="?page=libur" class="text-decoration-none text-danger small">Agenda Libur <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Welcome Section -->
-<div class="row">
-    <div class="col-lg-12">
+<!-- Welcome Section & Quick Status -->
+<div class="row g-3">
+    <div class="col-lg-8">
         <div class="card shadow-sm border-0 rounded-3">
             <div class="card-header bg-white py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Informasi Sistem</h6>
+                <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-check-circle-fill me-2"></i>Status Integrasi Sistem & Database</h6>
             </div>
             <div class="card-body">
-                <p>Selamat datang di Dashboard Sistem HRD. Gunakan menu di sebelah kiri untuk mengelola data pegawai, transaksi kehadiran, dan laporan.</p>
-                <div class="alert alert-info border-0 shadow-sm">
-                    <i class="bi bi-info-circle-fill me-2"></i> Aplikasi ini menggunakan Native PHP dan Bootstrap 5 dengan arsitektur modular sederhana.
+                <div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-3">
+                    <i class="bi bi-database-check fs-4 me-3"></i>
+                    <div>
+                        <strong>Database MySQL Aktif:</strong> Terhubung langsung ke <code>payrollhrd</code> di MySQL / phpMyAdmin.
+                    </div>
                 </div>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border text-center">
+                            <i class="bi bi-people fs-4 text-primary d-block mb-1"></i>
+                            <span class="fw-bold d-block small">Data Pegawai</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Terhubung ke M_PEGAWAI</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border text-center">
+                            <i class="bi bi-clock-history fs-4 text-info d-block mb-1"></i>
+                            <span class="fw-bold d-block small">Shift Kerja</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Terhubung ke M_SHIFT</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border text-center">
+                            <i class="bi bi-calendar-check fs-4 text-success d-block mb-1"></i>
+                            <span class="fw-bold d-block small">Jadwal Roster</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Terhubung ke T_JADWAL_KERJA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 font-weight-bold text-dark"><i class="bi bi-lightning-charge me-1 text-warning"></i>Aksi Cepat</h6>
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+                <a href="?page=pegawai" class="btn btn-outline-primary text-start btn-sm p-2">
+                    <i class="bi bi-person-plus me-2"></i> Tambah Pegawai Baru
+                </a>
+                <a href="?page=jadwal" class="btn btn-outline-success text-start btn-sm p-2">
+                    <i class="bi bi-calendar-range me-2"></i> Atur Jadwal Shift Mingguan
+                </a>
+                <a href="?page=libur" class="btn btn-outline-danger text-start btn-sm p-2">
+                    <i class="bi bi-calendar-plus me-2"></i> Tambah Libur Nasional
+                </a>
+                <a href="?page=register_lembur" class="btn btn-outline-warning text-dark text-start btn-sm p-2">
+                    <i class="bi bi-moon-stars me-2"></i> Form Register Lembur
+                </a>
             </div>
         </div>
     </div>
