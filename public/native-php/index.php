@@ -1,4 +1,5 @@
 <?php
+session_start();
 // index.php - Main Router
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 ?>
