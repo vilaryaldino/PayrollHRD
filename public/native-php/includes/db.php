@@ -2,7 +2,7 @@
 // config/database.php - Koneksi MySQL PDO untuk native-php & modul payrollhrd
 $host = '127.0.0.1';
 $port = '3306';
-$db   = 'payrollhrd';
+$db   = 'payroll';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';

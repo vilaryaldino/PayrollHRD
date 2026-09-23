@@ -117,7 +117,10 @@ INSERT INTO `M_DIVISI` (`ID_DIVISI`, `NAMA_DIVISI`, `KETERANGAN`) VALUES
 (2, 'Produksi & Operasional', 'Divisi Produksi Pabrik & Gudang'),
 (3, 'Keamanan & HSE', 'Security, Satpam & Keselamatan Kerja'),
 (4, 'Human Resource & GA', 'SDM, Personalia & Umum'),
-(5, 'Keuangan & Akuntansi', 'Finance & Accounting');
+(5, 'Keuangan & Akuntansi', 'Finance & Accounting'),
+(6, 'Fabrikasi', 'Divisi Fabrikasi'),
+(7, 'Galvanish', 'Divisi Galvanish'),
+(8, 'Finance', 'Divisi Finance');
 
 INSERT INTO `M_KELOMPOK` (`ID_KELOMPOK`, `NAMA_KELOMPOK`, `KETERANGAN`) VALUES
 (1, 'Regu Alfa (Pagi)', 'Regu operasional shift 1'),

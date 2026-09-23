@@ -248,7 +248,7 @@ $avatarColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899
                 <option value="0" <?= $filterStatus === 0 ? 'selected' : '' ?>>Hanya Non-Aktif / Resign</option>
             </select>
         </div>
-
+ 
         <div class="col-md-2 col-sm-12 d-flex gap-1 justify-content-end">
             <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
             <?php if ($filterDivisi !== '' || $filterStatus !== '' || $searchQuery !== ''): ?>

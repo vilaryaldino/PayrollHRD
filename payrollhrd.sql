@@ -44,7 +44,10 @@ INSERT INTO `m_divisi` (`ID_DIVISI`, `NAMA_DIVISI`, `KETERANGAN`, `CREATED_AT`, 
 (2, 'Produksi & Operasional', 'Divisi Produksi Pabrik & Gudang', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
 (3, 'Keamanan & HSE', 'Security, Satpam & Keselamatan Kerja', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
 (4, 'Human Resource & GA', 'SDM, Personalia & Umum', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
-(5, 'Keuangan & Akuntansi', 'Finance & Accounting', '2026-09-22 03:52:42', '2026-09-22 03:52:42');
+(5, 'Keuangan & Akuntansi', 'Finance & Accounting', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
+(6, 'Fabrikasi', 'Divisi Fabrikasi', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
+(7, 'Galvanish', 'Divisi Galvanish', '2026-09-22 03:52:42', '2026-09-22 03:52:42'),
+(8, 'Finance', 'Divisi Finance', '2026-09-22 03:52:42', '2026-09-22 03:52:42');
 
 -- --------------------------------------------------------
 
