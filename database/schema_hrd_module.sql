@@ -157,3 +157,31 @@ INSERT INTO `T_JADWAL_KERJA` (`ID_PEGAWAI`, `TANGGAL`, `ID_JADWAL`, `STATUS_KERJ
 (3, CURDATE(), 3, 'Kerja', 'Shift Malam Penjagaan', 'admin_hrd'),
 (5, CURDATE(), 2, 'Kerja', 'Shift Reguler Sore', 'admin_hrd'),
 (1, CURDATE(), 4, 'Kerja', 'Office Day', 'admin_hrd');
+
+-- ==========================================================
+-- 7. TABEL REGISTER LEMBUR (OVERTIME RECORD)
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS `T_REGISTER_LEMBUR` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `id_pegawai` INT UNSIGNED NULL,
+    `nama_pegawai` VARCHAR(150) NOT NULL,
+    `tanggal` DATE NOT NULL,
+    `hari` VARCHAR(50) NOT NULL,
+    `jam_mulai` TIME NOT NULL,
+    `jam_selesai` TIME NOT NULL,
+    `jenis_spl` VARCHAR(100) NOT NULL,
+    `catatan` TEXT NULL,
+    `durasi_lembur` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Durasi lembur setelah 17:00 (jam)',
+    `uang_makan` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Uang makan jika selesai > 20:00',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_lembur_pegawai` (`id_pegawai`),
+    KEY `idx_lembur_tanggal` (`tanggal`),
+    CONSTRAINT `fk_lembur_pegawai` FOREIGN KEY (`id_pegawai`) REFERENCES `M_PEGAWAI` (`ID_PEGAWAI`) ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabel Transaksi Register Lembur';
+
+INSERT INTO `T_REGISTER_LEMBUR` (`id_pegawai`, `nama_pegawai`, `tanggal`, `hari`, `jam_mulai`, `jam_selesai`, `jenis_spl`, `catatan`, `durasi_lembur`, `uang_makan`) VALUES
+(14, 'VILARY ALDINO EGREA', '2026-09-22', 'Sabtu', '17:30:00', '21:15:00', 'SPL Hari Libur + Jam Lembur', 'Maintenance sistem & support pabrik', 3.75, 15000.00),
+(15, 'Ahmad Santoso', '2026-09-22', 'Hari Kerja', '17:00:00', '19:00:00', 'SPL Jam Lembur', 'Rekap invoice akhir bulan', 2.00, 0.00),
+(16, 'Solikin rahmat', '2026-09-21', 'Minggu', '17:15:00', '21:00:00', 'SPL Hari Libur', 'Pengecekan genset & utilitas', 3.75, 15000.00);
+
