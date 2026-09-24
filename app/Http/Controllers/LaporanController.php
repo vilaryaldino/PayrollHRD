@@ -43,34 +43,61 @@ class LaporanController extends Controller
         $bulan = $request->input('bulan', date('m'));
         $tahun = $request->input('tahun', date('Y'));
 
-        /* 
-         * LOGIKA BARU: Mengambil data langsung dari tabel t_register_lembur
-         * Asumsi nama kolom di t_register_lembur:
-         * - id_pegawai
-         * - tanggal
-         * - jumlah_jam
-         * - nominal_bayar
-         * Silakan sesuaikan nama kolom DB::raw di bawah ini dengan struktur tabel Anda.
-         */
-        $laporanData = DB::table('t_register_lembur')
-            ->join('m_pegawai', 't_register_lembur.id_pegawai', '=', 'm_pegawai.ID_PEGAWAI')
+        $laporan = DB::table('t_register_lembur')
             ->select(
-                'm_pegawai.ID_PEGAWAI_MESIN as id_pegawai', 
-                'm_pegawai.NM_PEGAWAI as nama_pegawai',
-                // Sesuaikan 'jumlah_jam' dan 'nominal_bayar' dengan kolom asli Anda
-                DB::raw('SUM(t_register_lembur.jumlah_jam) as total_jam_lembur'),
-                DB::raw('SUM(t_register_lembur.nominal_bayar) as total_uang_lembur')
+                'id_pegawai',
+                'nama_pegawai',
+                DB::raw('COUNT(id) as total_sesi'),
+                DB::raw('SUM(durasi_lembur) as total_durasi'),
+                DB::raw('SUM(uang_makan) as total_uang_makan'),
+                DB::raw('MIN(tanggal) as tgl_pertama'),
+                DB::raw('MAX(tanggal) as tgl_terakhir')
             )
-            ->whereMonth('t_register_lembur.tanggal', $bulan)
-            ->whereYear('t_register_lembur.tanggal', $tahun)
-            ->groupBy('m_pegawai.ID_PEGAWAI_MESIN', 'm_pegawai.NM_PEGAWAI')
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->groupBy('id_pegawai', 'nama_pegawai')
+            ->orderByDesc('total_durasi')
             ->get();
 
-        $laporan = $laporanData->filter(function($item) {
-            return $item->total_jam_lembur > 0;
-        })->values();
+        $grandDurasi = $laporan->sum('total_durasi');
+        $grandUangMakan = $laporan->sum('total_uang_makan');
+        $grandSesi = $laporan->sum('total_sesi');
 
+        return view('laporan.lembur', compact('laporan', 'bulan', 'tahun', 'grandDurasi', 'grandUangMakan', 'grandSesi'));
+    }
 
-        return view('laporan.lembur', compact('laporan', 'bulan', 'tahun'));
+    public function lemburDetail(Request $request)
+    {
+        $idPegawai = $request->id_pegawai;
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+
+        $details = DB::table('t_register_lembur')
+            ->select('tanggal', 'hari', 'jenis_spl', 'jam_mulai', 'jam_selesai', 'durasi_lembur', 'uang_makan', 'catatan')
+            ->where('id_pegawai', $idPegawai)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('jam_mulai', 'asc')
+            ->get();
+
+        $result = $details->map(function ($row) {
+            $mnt = (int)round((float)$row->durasi_lembur * 60);
+            $jj = intdiv($mnt, 60);
+            $mm = $mnt % 60;
+            $dur = ($jj > 0 && $mm > 0) ? "{$jj}j {$mm}m" : ($jj > 0 ? "{$jj} jam" : "{$mm} menit");
+            return [
+                'tanggal' => Carbon::parse($row->tanggal)->format('d/m/Y'),
+                'hari' => $row->hari,
+                'jenis_spl' => $row->jenis_spl,
+                'jam_mulai' => substr($row->jam_mulai, 0, 5),
+                'jam_selesai' => substr($row->jam_selesai, 0, 5),
+                'durasi' => $dur,
+                'uang_makan' => (float)$row->uang_makan,
+                'catatan' => $row->catatan ?: '-'
+            ];
+        });
+
+        return response()->json($result);
     }
 }

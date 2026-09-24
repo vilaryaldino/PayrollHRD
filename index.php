@@ -1,4 +1,4 @@
 <?php
-// Mengarahkan otomatis ke halaman dashboard native-php
-header("Location: public/native-php/index.php");
+// Mengarahkan otomatis ke public directory (Laravel Entry Point)
+header("Location: public/");
 exit;

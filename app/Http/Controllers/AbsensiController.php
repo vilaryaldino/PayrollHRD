@@ -61,22 +61,31 @@ class AbsensiController extends Controller
 
         try {
             // Cek Nama Manual
-            $master = DB::table('M_PEGAWAI')->where('finger_id', $request->id_pegawai)->first();
+            $master = DB::table('M_PEGAWAI')->where('ID_PEGAWAI_MESIN', $request->id_pegawai)->first();
             $namaPegawai = $master ? $master->NM_PEGAWAI : 'Pegawai Tidak Dikenal / Belum Terdaftar';
+            $idPegawai = $master ? $master->ID_PEGAWAI : null;
         } catch (\Exception $e) {
             $namaPegawai = 'Pegawai Tidak Dikenal / Belum Terdaftar';
+            $idPegawai = null;
         }
 
         DataAbsensi::updateOrCreate(
-            ['id_pegawai' => $request->id_pegawai, 'tanggal' => $request->tanggal],
+            ['id_mesin' => $request->id_pegawai, 'tanggal' => $request->tanggal],
             [
+                'id_pegawai'     => $idPegawai,
                 'nama_pegawai'   => $namaPegawai,
                 'jam_kehadiran'  => $request->jam_kehadiran,
                 'jam_kepulangan' => $request->jam_kepulangan,
-                'lokasi_absen'   => $request->lokasi_absen ?? 'Manual/HRD',
+                'lokasi_absen'   => $request->lokasi_absen ?? 'Kantor Pusat',
             ]
         );
 
         return back()->with('success', 'Data absensi manual berhasil ditambahkan.');
+    }
+
+    public function destroy($id)
+    {
+        DataAbsensi::findOrFail($id)->delete();
+        return back()->with('success', 'Data absensi berhasil dihapus.');
     }
 }

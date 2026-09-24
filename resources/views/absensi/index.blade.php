@@ -64,13 +64,14 @@
                             <th>Clock Out</th>
                             <th>Lokasi</th>
                             <th>Status Data</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($absensis as $absen)
                         <tr>
                             <td class="ps-4">{{ \Carbon\Carbon::parse($absen->tanggal)->translatedFormat('d M Y') }}</td>
-                            <td><span class="badge bg-secondary">{{ $absen->id_pegawai }}</span></td>
+                            <td><span class="badge bg-secondary">{{ $absen->id_mesin }}</span></td>
                             <td class="fw-medium">
                                 @if(str_contains($absen->nama_pegawai, 'Tidak Dikenal'))
                                     <span class="text-danger"><i class="bi bi-exclamation-triangle"></i> {{ $absen->nama_pegawai }}</span>
@@ -100,10 +101,19 @@
                                     <span class="badge bg-warning text-dark rounded-pill">Tidak Lengkap</span>
                                 @endif
                             </td>
+                            <td class="text-center pe-4">
+                                <form method="POST" action="{{ route('absensi.destroy', $absen->id) }}" onsubmit="return confirm('Hapus data absensi ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Belum ada data absensi yang ditemukan.</td>
+                            <td colspan="8" class="text-center py-4 text-muted">Belum ada data absensi yang ditemukan.</td>
                         </tr>
                         @endforelse
                     </tbody>

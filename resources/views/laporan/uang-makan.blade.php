@@ -19,8 +19,8 @@
                     <label class="form-label small text-muted">Bulan</label>
                     <select name="bulan" class="form-select">
                         @for($i=1; $i<=12; $i++)
-                            <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}" {{ $bulan == str_pad($i, 2, '0', STR_PAD_LEFT) ? 'selected' : '' }}>
-                                {{ date('F', mktime(0, 0, 0, $i, 10)) }}
+                            <option value="{{ \Carbon\Carbon::create()->month($i)->format('m') }}" {{ $bulan == \Carbon\Carbon::create()->month($i)->format('m') ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
                             </option>
                         @endfor
                     </select>
@@ -28,7 +28,7 @@
                 <div class="col-md-3">
                     <label class="form-label small text-muted">Tahun</label>
                     <select name="tahun" class="form-select">
-                        @for($y=date('Y'); $y>=date('Y')-3; $y--)
+                        @for($y=now()->year; $y>=now()->year-3; $y--)
                             <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
@@ -51,11 +51,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $grandTotal = 0; @endphp
-                        @forelse($laporan as $index => $row)
-                            @php $grandTotal += $row->total_uang_makan; @endphp
+                        @forelse($laporan as $row)
                             <tr>
-                                <td class="ps-4">{{ $index + 1 }}</td>
+                                <td class="ps-4">{{ $loop->iteration }}</td>
                                 <td><span class="badge bg-secondary">{{ $row->id_pegawai }}</span></td>
                                 <td class="fw-medium">{{ $row->nama_pegawai }}</td>
                                 <td class="text-center fw-bold text-success">{{ $row->total_hari_hadir }} Hari</td>
@@ -70,7 +68,7 @@
                     <tfoot class="bg-light fw-bold">
                         <tr>
                             <td colspan="4" class="text-end">GRAND TOTAL :</td>
-                            <td class="text-end pe-4 text-primary fs-5">Rp {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                            <td class="text-end pe-4 text-primary fs-5">Rp {{ number_format(collect($laporan)->sum('total_uang_makan'), 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>

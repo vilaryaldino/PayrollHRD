@@ -10,6 +10,7 @@ class DataAbsensi extends Model
     
     // Mass assignment protection
     protected $fillable = [
+        'id_mesin',
         'id_pegawai',
         'nama_pegawai',
         'tanggal',
