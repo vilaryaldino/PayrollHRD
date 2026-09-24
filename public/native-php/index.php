@@ -1,10 +1,38 @@
 <?php
 ob_start();
 session_start();
+require_once __DIR__ . '/includes/auth.php';
 
 // index.php - Main Router
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = 'pages/' . $page . '.php';
+
+if ($page === 'logout') {
+    hrdLogout();
+    header('Location: ?page=login');
+    exit;
+}
+
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login') {
+    if (hrdAttemptLogin($_POST['username'] ?? '', $_POST['password'] ?? '')) {
+        header('Location: ?page=dashboard');
+        exit;
+    }
+
+    $_SESSION['login_error'] = 'Username atau password yang dimasukkan salah.';
+    header('Location: ?page=login');
+    exit;
+}
+
+if ($page !== 'login' && !hrdIsAuthenticated()) {
+    header('Location: ?page=login');
+    exit;
+}
+
+if ($page === 'login') {
+    include $pagePath;
+    exit;
+}
 
 // Jika ada request POST, eksekusi file page SEBELUM menghasilkan output HTML apapun
 // Ini menjamin header("Location: ...") dapat berjalan bersih tanpa "headers already sent"
@@ -14,7 +42,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <?php include 'includes/header.php'; ?>
     <title>HRD Dashboard</title>
@@ -34,12 +62,12 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
                     <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img src="https://ui-avatars.com/api/?name=Admin+HRD" class="rounded-circle me-2" width="30" height="30" alt="User"> Admin HRD
+                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['hrd_username'] ?? 'Admin HRD') ?>&background=287bb5&color=fff" class="rounded-circle me-2" width="30" height="30" alt="User"> <?= htmlspecialchars($_SESSION['hrd_username'] ?? 'Admin HRD', ENT_QUOTES, 'UTF-8') ?>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="#!">Profile</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#!">Logout</a>
+                                <a class="dropdown-item" href="?page=logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
                             </div>
                         </li>
                     </ul>

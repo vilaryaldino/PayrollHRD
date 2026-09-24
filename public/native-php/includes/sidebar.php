@@ -10,6 +10,10 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         <a class="list-group-item list-group-item-action <?= $currentPage == 'dashboard' ? 'active' : '' ?>" href="?page=dashboard">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
+
+        <a class="list-group-item list-group-item-action text-warning" href="?page=logout">
+            <i class="bi bi-box-arrow-right"></i> Keluar
+        </a>
         
         <!-- Master -->
         <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#masterMenu" role="button" aria-expanded="false">
