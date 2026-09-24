@@ -137,7 +137,7 @@
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="#!">Profile</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#!"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                                <a class="dropdown-item" href="{{ route('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
                             </div>
                         </li>
                     </ul>
