@@ -47,62 +47,93 @@ class LemburController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'id_pegawai' => 'required',
-            'tanggal' => 'required|date',
-            'hari' => 'required',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i',
-            'jenis_spl' => 'required'
-        ]);
+        // 1. Ambil Identitas Karyawan
+        $idPegawai = $request->input('id_pegawai');
+        $namaKaryawan = $request->input('nama_karyawan') ?? $request->input('nama_pegawai');
 
-        $idPegawai = $request->id_pegawai;
-        $namaPegawai = '';
-        $pegawai = DB::table('M_PEGAWAI')->where('ID_PEGAWAI', $idPegawai)->first();
-        if ($pegawai) {
-            $namaPegawai = $pegawai->NM_PEGAWAI;
+        if ($idPegawai) {
+            $pegawai = DB::table('M_PEGAWAI')->where('ID_PEGAWAI', $idPegawai)->first();
+            if ($pegawai && empty($namaKaryawan)) {
+                $namaKaryawan = $pegawai->NM_PEGAWAI;
+            }
+        } elseif ($namaKaryawan) {
+            $pegawai = DB::table('M_PEGAWAI')->where('NM_PEGAWAI', $namaKaryawan)->first();
+            if ($pegawai) {
+                $idPegawai = $pegawai->ID_PEGAWAI;
+            }
         }
 
-        if (empty($namaPegawai)) {
-            return back()->with('error', 'Silakan pilih pegawai terlebih dahulu!')->withInput();
+        if (empty($namaKaryawan)) {
+            return back()->with('error', 'Silakan pilih atau masukkan nama pegawai terlebih dahulu!')->withInput();
         }
 
-        $mulaiSec = strtotime($request->tanggal . ' ' . $request->jam_mulai);
-        $selesaiSec = strtotime($request->tanggal . ' ' . $request->jam_selesai);
+        // 2. Ambil Input SPL & Hitung Nominal (Sesuai Logika create.blade)
+        $periode = $request->input('periode', '01 - 31 Agustus 2026');
+        $lokasi = $request->input('lokasi', 'KANTOR');
+        $hariKerjaQty = (float)$request->input('hari_kerja_qty', 19);
 
-        if ($selesaiSec <= $mulaiSec) {
-            return back()->with('error', 'Jam selesai tidak boleh lebih kecil atau sama dengan jam mulai!')->withInput();
+        $lemburAQty = (float)$request->input('lembur_a_qty', 0);
+        $lemburARate = (float)$request->input('lembur_a_rate', 29200);
+        $lemburAAmount = $lemburAQty * $lemburARate;
+
+        $lemburBQty = (float)$request->input('lembur_b_qty', 0);
+        $lemburBRate = (float)$request->input('lembur_b_rate', 34400);
+        $lemburBAmount = $lemburBQty * $lemburBRate;
+
+        $luarKotaQty = (float)$request->input('luar_kota_qty', 0);
+        $luarKotaRate = (float)$request->input('luar_kota_rate', 30000);
+        $luarKotaAmount = $luarKotaQty * $luarKotaRate;
+
+        $uangMakanQty = (float)$request->input('uang_makan_qty', 0);
+        $uangMakanRate = (float)$request->input('uang_makan_rate', 15000);
+        $uangMakanAmount = $uangMakanQty * $uangMakanRate;
+
+        $uangMakanLemburQty = (float)$request->input('uang_makan_lembur_qty', 0);
+        $uangMakanLemburRate = (float)$request->input('uang_makan_lembur_rate', 15000);
+        $uangMakanLemburAmount = $uangMakanLemburQty * $uangMakanLemburRate;
+
+        $totalUangMakan = $uangMakanAmount + $uangMakanLemburAmount;
+        $totalDurasiLembur = $lemburAQty + $lemburBQty;
+        $totalIdr = $lemburAAmount + $lemburBAmount + $luarKotaAmount + $totalUangMakan;
+
+        // Validasi jika dikirimkan jam_mulai dan jam_selesai secara spesifik
+        $jamMulai = $request->input('jam_mulai', '17:00');
+        $jamSelesai = $request->input('jam_selesai', '20:00');
+        $tanggal = $request->input('tanggal', date('Y-m-d'));
+        $hari = $request->input('hari', 'Hari Kerja');
+        $jenisSpl = $request->input('jenis_spl', 'SPL Jam Lembur (LA & LB)');
+
+        if ($request->filled('jam_mulai') && $request->filled('jam_selesai')) {
+            $mulaiSec = strtotime($tanggal . ' ' . $jamMulai);
+            $selesaiSec = strtotime($tanggal . ' ' . $jamSelesai);
+            if ($selesaiSec > $mulaiSec) {
+                $jam17Sec = strtotime($tanggal . ' 17:00:00');
+                $jamMulaiLemburSec = max($mulaiSec, $jam17Sec);
+                if ($totalDurasiLembur <= 0 && $selesaiSec > $jamMulaiLemburSec) {
+                    $totalDurasiLembur = round(($selesaiSec - $jamMulaiLemburSec) / 3600, 2);
+                }
+            }
         }
 
-        $jam17Sec = strtotime($request->tanggal . ' 17:00:00');
-        $jam20Sec = strtotime($request->tanggal . ' 20:00:00');
-
-        $jamMulaiLemburSec = max($mulaiSec, $jam17Sec);
-        $durasiLembur = 0.00;
-
-        if ($selesaiSec > $jamMulaiLemburSec) {
-            $durasiDetik = $selesaiSec - $jamMulaiLemburSec;
-            $durasiLembur = round($durasiDetik / 3600, 2);
-        }
-
-        $uangMakan = ($selesaiSec > $jam20Sec) ? 15000.00 : 0.00;
+        $catatanInput = $request->input('catatan');
+        $catatanDefault = "SPL: {$periode} | Lokasi: {$lokasi} | LA: {$lemburAQty}, LB: {$lemburBQty}, LK: {$luarKotaQty} | Total IDR: Rp " . number_format($totalIdr, 0, ',', '.');
+        $catatan = !empty($catatanInput) ? $catatanInput : $catatanDefault;
 
         $lembur = RegisterLembur::create([
             'id_pegawai' => $idPegawai,
-            'nama_pegawai' => $namaPegawai,
-            'tanggal' => $request->tanggal,
-            'hari' => $request->hari,
-            'jam_mulai' => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-            'jenis_spl' => $request->jenis_spl,
-            'catatan' => $request->catatan,
-            'durasi_lembur' => $durasiLembur,
-            'uang_makan' => $uangMakan
+            'nama_pegawai' => $namaKaryawan,
+            'tanggal' => $tanggal,
+            'hari' => $hari,
+            'jam_mulai' => $jamMulai,
+            'jam_selesai' => $jamSelesai,
+            'jenis_spl' => $jenisSpl,
+            'catatan' => $catatan,
+            'durasi_lembur' => $totalDurasiLembur,
+            'uang_makan' => $totalUangMakan
         ]);
 
-        $uangMakanFormatted = number_format($uangMakan, 0, ',', '.');
         return redirect()->route('lembur.register', ['last_id' => $lembur->id])
-            ->with('success', "Data register lembur untuk $namaPegawai berhasil disimpan ke database (Uang Makan: Rp $uangMakanFormatted)!");
+            ->with('success', "Data SPL Lembur untuk {$namaKaryawan} berhasil disimpan (Total IDR: Rp " . number_format($totalIdr, 0, ',', '.') . ")!");
     }
 
     public function destroy($id)

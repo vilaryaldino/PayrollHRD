@@ -62,7 +62,8 @@ class SplController extends Controller
      */
     public function create()
     {
-        return view('spl.create');
+        $pegawaiList = DB::table('M_PEGAWAI')->where('IS_AKTIF', 1)->orderBy('NM_PEGAWAI')->get();
+        return view('spl.create', compact('pegawaiList'));
     }
 
     /**
