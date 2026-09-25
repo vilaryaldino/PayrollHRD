@@ -1,0 +1,56 @@
+{
+  "status": "success",
+  "data": {
+    "periode": "01 - 31 Agustus 2026",
+    "karyawan": {
+      "no": "KRY-001",
+      "nama": "John Doe"
+    },
+    "lokasi": "KANTOR",
+    "rekapitulasi": {
+      "hari_kerja": {
+        "label": "Hari Kerja",
+        "qty": 19,
+        "rate": 0,
+        "amount": 0
+      },
+      "lembur_a": {
+        "label": "Lembur A (LA)",
+        "qty": 2,
+        "rate": 29200,
+        "amount": 58400
+      },
+      "lembur_b": {
+        "label": "Lembur B (LB)",
+        "qty": 4,
+        "rate": 34400,
+        "amount": 137600
+      },
+      "luar_kota": {
+        "label": "Luar Kota",
+        "qty": 0,
+        "rate": 30000,
+        "amount": 0
+      },
+      "uang_makan": {
+        "label": "Uang Makan/",
+        "qty": 19,
+        "rate": 15000,
+        "amount": 285000
+      },
+      "uang_makan_lembur": {
+        "label": "uang makan lembur",
+        "qty": 2,
+        "rate": 15000,
+        "amount": 30000
+      },
+      "tunjangan": {
+        "project_manager": 0,
+        "ska": 0,
+        "jabatan": 0
+      },
+      "potongan": 0
+    },
+    "total_idr": 511000
+  }
+}

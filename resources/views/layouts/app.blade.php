@@ -100,11 +100,12 @@
                     <span><i class="bi bi-wallet2"></i> Transaksi</span>
                     <i class="bi bi-chevron-down ms-auto" style="font-size: 0.8rem;"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('jadwal.*') || request()->routeIs('absensi.*') || request()->routeIs('lembur.*') ? 'show' : '' }}" id="transaksiMenu">
+                <div class="collapse {{ request()->routeIs('jadwal.*') || request()->routeIs('absensi.*') || request()->routeIs('lembur.*') || request()->routeIs('spl.*') ? 'show' : '' }}" id="transaksiMenu">
                     <div class="submenu list-group">
                         <a href="{{ route('jadwal.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('jadwal.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Jadwal Kerja</a>
                         <a href="{{ route('absensi.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('absensi.*') ? 'active' : '' }}"><i class="bi bi-person-check"></i> Data Absen</a>
                         <a href="{{ route('lembur.register') }}" class="list-group-item list-group-item-action {{ request()->routeIs('lembur.register') ? 'active' : '' }}"><i class="bi bi-moon-stars"></i> Register Lembur</a>
+                        <a href="{{ route('spl.create') }}" class="list-group-item list-group-item-action {{ request()->routeIs('spl.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-plus"></i> Input SPL</a>
                     </div>
                 </div>
 

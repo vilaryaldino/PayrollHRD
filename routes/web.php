@@ -61,4 +61,10 @@ Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
     Route::get('/laporan/lembur', [LaporanController::class, 'lembur'])->name('laporan.lembur');
     Route::get('/laporan/lembur/detail', [LaporanController::class, 'lemburDetail'])->name('laporan.lembur.detail');
 
+    // Route Surat Perintah Lembur
+    Route::get('/spl/create', [\App\Http\Controllers\SplController::class, 'create'])->name('spl.create');
+    Route::post('/spl/calculate', [\App\Http\Controllers\SplController::class, 'calculate'])->name('spl.calculate');
+    Route::post('/spl/store', [\App\Http\Controllers\SplController::class, 'store'])->name('spl.store');
+    Route::get('/api/spl/rekapitulasi', [\App\Http\Controllers\SplController::class, 'apiRekapitulasi'])->name('api.spl.rekap');
+
 });
