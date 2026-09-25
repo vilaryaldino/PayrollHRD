@@ -19,7 +19,7 @@ function fmtJam($desimal) {
 }
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 d-print-none">
     <div>
         <h4 class="mb-0 fw-bold text-primary">
             <i class="bi bi-moon-stars-fill me-2"></i>Laporan Lembur Pegawai
@@ -269,12 +269,97 @@ function fmtJam($desimal) {
 
 <style>
 @media print {
-    #sidebar-wrapper, nav.navbar, .btn, form, #modalDetail { display: none !important; }
-    .card { border: 1px solid #ccc !important; box-shadow: none !important; page-break-inside: avoid; }
-    body { font-size: 12px; }
-    h4 { font-size: 16px; }
+    body { background-color: #fff; margin: 0; padding: 0; }
+    #sidebar-wrapper, nav.navbar, .d-print-none, .btn, form, #modalDetail, .card { display: none !important; }
+    .d-print-block { display: block !important; }
+    main.content { padding: 0 !important; margin: 0 !important; width: 100% !important; }
+    .invoice-print { width: 100%; margin: 0 auto; padding: 20px; }
+    .table-bordered > :not(caption) > * > * { border-width: 1px 1px; border-color: #000; }
 }
 </style>
+
+<!-- PRINT INVOICE FORMAT -->
+<div class="d-none d-print-block invoice-print text-dark">
+    <div class="row mb-3">
+        <div class="col-8">
+            <h6 class="fw-bold mb-0">PT. USAHA BAKTI PERKASA</h6>
+            <div style="font-size: 11px; line-height: 1.2;">
+                GENERAL CONTRACTOR, STEEL FABRICATOR & GALVANIZE<br>
+                Jl. Raya Lingkar Timur No. 1 - Kemiri - Sidoarjo<br>
+                No. Telp : (031) 8073893, 8965651, Fax : (031) 8956560
+            </div>
+        </div>
+        <div class="col-4 text-end">
+            <div class="border border-dark p-2 text-center ms-auto" style="width: 150px; letter-spacing: 2px;">
+                <h5 class="fw-bold mb-0">INVOICE</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-0 mb-3" style="font-size: 12px;">
+        <div class="col-7 border border-dark p-2">
+            <table class="table table-borderless table-sm mb-0">
+                <tr><td width="80" class="py-0 px-1">Kepada</td><td class="py-0 px-1">: </td></tr>
+                <tr><td class="py-0 px-1">Alamat</td><td class="py-0 px-1">: </td></tr>
+                <tr><td class="py-0 px-1">NPWP</td><td class="py-0 px-1">: </td></tr>
+            </table>
+        </div>
+        <div class="col-5 border border-dark p-2 border-start-0">
+            <table class="table table-borderless table-sm mb-0">
+                <tr><td width="100" class="py-0 px-1">Tgl Invoice</td><td class="py-0 px-1">: {{ date('d F Y') }}</td></tr>
+                <tr><td class="py-0 px-1">No. Invoice</td><td class="py-0 px-1">: {{ date('d') }}/UBP-INV/LBM/{{ date('m/Y') }}</td></tr>
+                <tr><td class="py-0 px-1">Periode</td><td class="py-0 px-1">: {{ $namaBulan[(int)$bulan] }} {{ $tahun }}</td></tr>
+                <tr><td class="py-0 px-1">Pembayaran</td><td class="py-0 px-1">: Termin 30 Hari</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <table class="table table-bordered border-dark table-sm mb-0" style="font-size: 12px;">
+        <thead class="text-center">
+            <tr>
+                <th width="5%">NO</th>
+                <th width="40%">DESKRIPSI</th>
+                <th width="15%">TOTAL SESI</th>
+                <th width="20%">TOTAL DURASI</th>
+                <th width="20%">UANG MAKAN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($laporan as $index => $row)
+            <tr>
+                <td class="text-center">{{ $index + 1 }}</td>
+                <td>{{ $row->nama_pegawai }} - Lembur</td>
+                <td class="text-center">{{ (int)$row->total_sesi }}</td>
+                <td class="text-center">{!! fmtJam($row->total_durasi) !!}</td>
+                <td class="text-end">Rp. {{ number_format($row->total_uang_makan, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-center fw-bold">Total Uang Makan Lembur</td>
+                <td class="text-end fw-bold">Rp. {{ number_format($grandUangMakan, 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="row mt-4" style="font-size: 11px;">
+        <div class="col-8">
+            * Pembayaran mohon di transfer ke :<br>
+            Bank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Mandiri / BCA<br>
+            Cabang&nbsp;&nbsp;&nbsp;&nbsp;: Sidoarjo<br>
+            Penerima&nbsp;&nbsp;: PT. USAHA BAKTI PERKASA<br>
+            No. Rek&nbsp;&nbsp;&nbsp;: 141 0088 5757 88 / 018 501 5900<br>
+            No. NPWP : 02.169.653.5 - 609.000<br><br>
+            <b>UBP-FIN-INV-02</b>
+        </div>
+        <div class="col-4 text-center">
+            PT. USAHA BAKTI PERKASA<br><br><br><br>
+            <span class="text-decoration-underline fw-bold">PUJI RAHAYU</span><br>
+            Finance
+        </div>
+    </div>
+</div>
 
 <script>
 function loadDetail(idPegawai, nama, bulan, tahun) {

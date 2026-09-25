@@ -12,7 +12,9 @@ class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DataAbsensi::query();
+        $query = DB::table('t_data_absensi')
+            ->leftJoin('m_pegawai', 't_data_absensi.nama_pegawai', '=', 'm_pegawai.NM_PEGAWAI')
+            ->select('t_data_absensi.*', 'm_pegawai.ID_PEGAWAI_MESIN as id_mesin_pegawai');
 
         // 1. Filter Rentang Tanggal
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -23,8 +25,9 @@ class AbsensiController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('nama_pegawai', 'like', "%{$search}%")
-                  ->orWhere('id_pegawai', 'like', "%{$search}%");
+                $q->where('t_data_absensi.nama_pegawai', 'like', "%{$search}%")
+                  ->orWhere('t_data_absensi.id_pegawai', 'like', "%{$search}%")
+                  ->orWhere('m_pegawai.ID_PEGAWAI_MESIN', 'like', "%{$search}%");
             });
         }
 
@@ -33,7 +36,10 @@ class AbsensiController extends Controller
         // Paginasi bawaan Laravel
         $absensis = $query->paginate(15)->withQueryString();
 
-        return view('absensi.index', compact('absensis'));
+        // Data Pegawai untuk modal manual
+        $pegawais = DB::table('m_pegawai')->where('IS_AKTIF', 1)->whereNotNull('ID_PEGAWAI_MESIN')->orderBy('NM_PEGAWAI', 'ASC')->get();
+
+        return view('absensi.index', compact('absensis', 'pegawais'));
     }
 
     public function importExcel(Request $request)

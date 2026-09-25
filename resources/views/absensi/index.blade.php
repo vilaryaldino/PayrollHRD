@@ -71,7 +71,7 @@
                         @forelse($absensis as $absen)
                         <tr>
                             <td class="ps-4">{{ \Carbon\Carbon::parse($absen->tanggal)->translatedFormat('d M Y') }}</td>
-                            <td><span class="badge bg-secondary">{{ $absen->id_mesin }}</span></td>
+                            <td><span class="badge bg-secondary">{{ $absen->id_mesin_pegawai ?? $absen->id_mesin ?? $absen->id_pegawai }}</span></td>
                             <td class="fw-medium">
                                 @if(str_contains($absen->nama_pegawai, 'Tidak Dikenal'))
                                     <span class="text-danger"><i class="bi bi-exclamation-triangle"></i> {{ $absen->nama_pegawai }}</span>
@@ -164,8 +164,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">PIN Mesin / ID Pegawai</label>
-                        <input type="text" name="id_pegawai" class="form-control" required placeholder="Contoh: 1001">
+                        <label class="form-label">Pegawai (PIN Mesin)</label>
+                        <select name="id_pegawai" class="form-select" required>
+                            <option value="">-- Pilih Pegawai --</option>
+                            @foreach($pegawais as $pegawai)
+                                <option value="{{ $pegawai->ID_PEGAWAI_MESIN }}">{{ $pegawai->NM_PEGAWAI }} (PIN: {{ $pegawai->ID_PEGAWAI_MESIN }})</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tanggal</label>
