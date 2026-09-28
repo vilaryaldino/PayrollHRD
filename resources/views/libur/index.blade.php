@@ -153,18 +153,23 @@ function cekUpcoming($tgl) {
                         @endif
                     </td>
                     <td style="text-align: center;">
-                        <button class="btn btn-sm btn-link text-primary p-0 me-2" data-bs-toggle="modal" data-bs-target="#editLibur{{ $l->ID_LIBUR }}">
-                            <i class="bi bi-pencil-square fs-6"></i>
-                        </button>
-                        <form method="POST" action="{{ route('libur.destroy', $l->ID_LIBUR) }}" class="d-inline" onsubmit="return confirm('Hapus hari libur {{ addslashes($l->KETERANGAN) }} dari database?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash3 fs-6"></i></button>
-                        </form>
+                        @if ($l->IS_API)
+                            <span class="badge bg-info text-white" style="font-size: 0.65rem;"><i class="bi bi-cloud-arrow-down me-1"></i>Realtime API</span>
+                        @else
+                            <button class="btn btn-sm btn-link text-primary p-0 me-2" data-bs-toggle="modal" data-bs-target="#editLibur{{ $l->ID_LIBUR }}">
+                                <i class="bi bi-pencil-square fs-6"></i>
+                            </button>
+                            <form method="POST" action="{{ route('libur.destroy', $l->ID_LIBUR) }}" class="d-inline" onsubmit="return confirm('Hapus hari libur {{ addslashes($l->KETERANGAN) }} dari database?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash3 fs-6"></i></button>
+                            </form>
+                        @endif
                     </td>
                 </tr>
 
-                <!-- Modal Edit Libur -->
+                @if (!$l->IS_API)
+                <!-- Modal Edit Libur (Hanya untuk data custom Database) -->
                 <div class="modal fade" id="editLibur{{ $l->ID_LIBUR }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <form method="POST" action="{{ route('libur.update', $l->ID_LIBUR) }}">
@@ -208,6 +213,7 @@ function cekUpcoming($tgl) {
                         </form>
                     </div>
                 </div>
+                @endif
             @empty
                 <tr>
                     <td colspan="8" class="text-center py-5 text-muted">

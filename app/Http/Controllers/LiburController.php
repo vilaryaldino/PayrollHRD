@@ -18,22 +18,66 @@ class LiburController extends Controller
             $query->whereYear('TANGGAL', $selectedYear);
         }
         
-        $liburList = $query->orderBy('TANGGAL', 'ASC')->get();
+        $dbLibur = $query->orderBy('TANGGAL', 'ASC')->get();
+        
+        // Tandai data dari database
+        $dbLibur->transform(function ($item) {
+            $item->IS_API = false;
+            return $item;
+        });
 
+        $apiLibur = collect();
+        // Jika 'all', kita ambil minimal tahun berjalan dari API
+        $yearsToFetch = $selectedYear === 'all' ? [date('Y')] : [$selectedYear];
+        
+        foreach ($yearsToFetch as $year) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(5)->get("https://date.nager.at/api/v3/PublicHolidays/{$year}/ID");
+                if ($response->successful()) {
+                    $holidays = $response->json();
+                    foreach ($holidays as $holiday) {
+                        $apiLibur->push((object)[
+                            'ID_LIBUR' => 'api_' . uniqid(),
+                            'KETERANGAN' => $holiday['localName'] ?? $holiday['name'],
+                            'TANGGAL' => $holiday['date'],
+                            'JENIS_LIBUR' => 'Nasional', // Default API adalah hari libur nasional
+                            'IS_DIBAYAR' => 1,
+                            'IS_API' => true
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Abaikan jika API gagal (fallback ke DB saja)
+            }
+        }
+
+        // Hindari duplikasi tanggal, prioritaskan custom dari database
+        $dbDates = $dbLibur->pluck('TANGGAL')->toArray();
+        $filteredApiLibur = $apiLibur->filter(function($item) use ($dbDates) {
+            return !in_array($item->TANGGAL, $dbDates);
+        });
+
+        // Gabungkan dan urutkan berdasarkan tanggal
+        $liburList = $dbLibur->concat($filteredApiLibur)->sortBy('TANGGAL')->values();
+
+        // Hitung statistik dari data gabungan (realtime)
+        $totalLibur = $liburList->count();
+        $totalNasional = $liburList->where('JENIS_LIBUR', 'Nasional')->count();
+        $totalCuti = $liburList->where('JENIS_LIBUR', 'Cuti Bersama')->count();
+        $totalUpcoming = $liburList->where('TANGGAL', '>=', date('Y-m-d'))->count();
+
+        // List tahun untuk filter dropdown
         $tahunList = DB::table('m_libur_nasional')
             ->selectRaw('DISTINCT YEAR(TANGGAL) AS thn')
             ->orderBy('thn', 'ASC')
             ->pluck('thn')
             ->toArray();
 
-        if (empty($tahunList)) {
-            $tahunList = [date('Y')];
-        }
-
-        $totalLibur = DB::table('m_libur_nasional')->count();
-        $totalNasional = DB::table('m_libur_nasional')->where('JENIS_LIBUR', 'Nasional')->count();
-        $totalCuti = DB::table('m_libur_nasional')->where('JENIS_LIBUR', 'Cuti Bersama')->count();
-        $totalUpcoming = DB::table('m_libur_nasional')->where('TANGGAL', '>=', date('Y-m-d'))->count();
+        // Pastikan tahun ini dan tahun yang dipilih ada di list
+        $currentY = (int)date('Y');
+        if (!in_array($currentY, $tahunList)) $tahunList[] = $currentY;
+        if ($selectedYear !== 'all' && !in_array((int)$selectedYear, $tahunList)) $tahunList[] = (int)$selectedYear;
+        sort($tahunList);
 
         return view('libur.index', compact(
             'liburList', 
