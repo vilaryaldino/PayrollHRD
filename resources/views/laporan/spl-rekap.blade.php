@@ -44,15 +44,15 @@
         .header-logo {
             width: 70px;
             height: 70px;
-            border: 2px solid #2CA02C; /* Green hexagon border color */
-            border-radius: 10px; /* approximation of the logo */
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 24px;
-            color: #2CA02C;
             margin-right: 15px;
+        }
+        .header-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .header-company-info {
             display: flex;
@@ -169,7 +169,7 @@
         <div class="header">
             <div class="header-left">
                 <div class="header-logo">
-                    UBP
+                    <img src="{{ asset('images/logo-ubp.png') }}" alt="Logo PT. Usaha Bakti Perkasa">
                 </div>
                 <div class="header-company-info">
                     <div><span class="company-name">PT. Usaha Bakti Perkasa</span></div>

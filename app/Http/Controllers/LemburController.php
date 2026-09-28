@@ -136,6 +136,135 @@ class LemburController extends Controller
             ->with('success', "Data SPL Lembur untuk {$namaKaryawan} berhasil disimpan (Total IDR: Rp " . number_format($totalIdr, 0, ',', '.') . ")!");
     }
 
+    public function cetakSlip($id)
+    {
+        $lembur = RegisterLembur::findOrFail($id);
+
+        $pegawai = null;
+        if ($lembur->id_pegawai) {
+            $pegawai = DB::table('M_PEGAWAI')->where('ID_PEGAWAI', $lembur->id_pegawai)->first();
+        }
+
+        $noKaryawan = $pegawai && $pegawai->ID_PEGAWAI_MESIN 
+            ? $pegawai->ID_PEGAWAI_MESIN 
+            : ($lembur->id_pegawai ? ('KRY-' . str_pad($lembur->id_pegawai, 3, '0', STR_PAD_LEFT)) : ('SPL-' . str_pad($lembur->id, 3, '0', STR_PAD_LEFT)));
+        
+        $namaKaryawan = $lembur->nama_pegawai ?: ($pegawai->NM_PEGAWAI ?? 'Karyawan #' . $lembur->id);
+
+        // Default values
+        $periode = \Carbon\Carbon::parse($lembur->tanggal)->translatedFormat('d F Y');
+        $lokasi = 'KANTOR';
+        $laQty = 0;
+        $lbQty = 0;
+        $lkQty = 0;
+        $hariKerjaQty = 1;
+        $uangMakanQty = 0;
+        $uangMakanLemburQty = 0;
+
+        $catatan = $lembur->catatan ?? '';
+        
+        // Parse metadata if available in catatan: "SPL: {periode} | Lokasi: {lokasi} | LA: {la}, LB: {lb}, LK: {lk} | Total IDR: Rp {total}"
+        if (preg_match('/SPL:\s*([^\|]+)/i', $catatan, $m)) {
+            $periode = trim($m[1]);
+        }
+        if (preg_match('/Lokasi:\s*([^\|]+)/i', $catatan, $m)) {
+            $lokasi = trim($m[1]);
+        }
+        if (preg_match('/LA:\s*([0-9\.]+)/i', $catatan, $m)) {
+            $laQty = (float)$m[1];
+        }
+        if (preg_match('/LB:\s*([0-9\.]+)/i', $catatan, $m)) {
+            $lbQty = (float)$m[1];
+        }
+        if (preg_match('/LK:\s*([0-9\.]+)/i', $catatan, $m)) {
+            $lkQty = (float)$m[1];
+        }
+
+        // If not parsed from formatted catatan, deduce reasonably from row fields
+        $rateLA = 29200;
+        $rateLB = 34400;
+        $rateLK = 30000;
+        $rateUM = 15000;
+
+        if ($laQty == 0 && $lbQty == 0 && $lkQty == 0 && (float)$lembur->durasi_lembur > 0) {
+            $durasi = (float)$lembur->durasi_lembur;
+            if (stripos($lembur->jenis_spl, 'Luar Kota') !== false) {
+                $lkQty = $durasi;
+            } elseif (stripos($lembur->jenis_spl, 'Lembur B') !== false) {
+                $lbQty = $durasi;
+            } elseif (stripos($lembur->jenis_spl, 'Lembur A') !== false) {
+                $laQty = $durasi;
+            } else {
+                // Default hybrid: 1st hour LA, rest LB
+                if ($durasi <= 1) {
+                    $laQty = $durasi;
+                } else {
+                    $laQty = 1;
+                    $lbQty = $durasi - 1;
+                }
+            }
+        }
+
+        $totalUangMakanNominal = (float)$lembur->uang_makan;
+        if ($totalUangMakanNominal > 0) {
+            // Check if multiple of 15,000
+            $totalPorsi = round($totalUangMakanNominal / $rateUM);
+            if ($totalPorsi >= 2) {
+                $uangMakanQty = 1;
+                $uangMakanLemburQty = $totalPorsi - 1;
+            } else {
+                $uangMakanQty = $totalPorsi;
+                $uangMakanLemburQty = 0;
+            }
+        }
+
+        $amtLA = $laQty * $rateLA;
+        $amtLB = $lbQty * $rateLB;
+        $amtLK = $lkQty * $rateLK;
+        $amtUM = $uangMakanQty * $rateUM;
+        $amtUML = $uangMakanLemburQty * $rateUM;
+        $totalIdr = $amtLA + $amtLB + $amtLK + $amtUM + $amtUML;
+
+        $data = [
+            'periode' => $periode,
+            'karyawan' => [
+                'no' => $noKaryawan,
+                'nama' => $namaKaryawan
+            ],
+            'lokasi' => $lokasi,
+            'hari_kerja' => ['jam' => $hariKerjaQty],
+            'lembur_a' => [
+                'qty' => $laQty,
+                'rate' => $rateLA,
+                'amount' => $amtLA
+            ],
+            'lembur_b' => [
+                'qty' => $lbQty,
+                'rate' => $rateLB,
+                'amount' => $amtLB
+            ],
+            'luar_kota' => [
+                'qty' => $lkQty,
+                'rate' => $rateLK,
+                'amount' => $amtLK
+            ],
+            'uang_makan' => [
+                'qty' => $uangMakanQty,
+                'rate' => $rateUM,
+                'amount' => $amtUM
+            ],
+            'uang_makan_lembur' => [
+                'qty' => $uangMakanLemburQty,
+                'rate' => $rateUM,
+                'amount' => $amtUML
+            ],
+            'total_idr' => $totalIdr,
+            'lembur_item' => $lembur
+        ];
+
+        return view('laporan.spl-rekap', compact('data'));
+    }
+
     public function destroy($id)
     {
         RegisterLembur::findOrFail($id)->delete();

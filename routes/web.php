@@ -54,6 +54,7 @@ Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
     // Route Data Lembur
     Route::get('/lembur/register', [LemburController::class, 'register'])->name('lembur.register');
     Route::post('/lembur/register', [LemburController::class, 'store'])->name('lembur.store');
+    Route::get('/lembur/{id}/cetak', [LemburController::class, 'cetakSlip'])->name('lembur.cetak');
     Route::delete('/lembur/{id}', [LemburController::class, 'destroy'])->name('lembur.destroy');
 
     // Route Laporan

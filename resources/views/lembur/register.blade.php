@@ -547,7 +547,7 @@
                             <th>Jenis SPL</th>
                             <th>Uang Makan</th>
                             <th>Catatan / Rincian</th>
-                            <th class="text-center" style="width: 80px;">Aksi</th>
+                            <th class="text-center" style="width: 110px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -565,7 +565,7 @@
                                 <td>
                                     <div>
                                         <span class="badge bg-warning bg-opacity-25 text-dark fw-bold">
-                                            <i class="bi bi-clock me-1"></i>{{ number_format($row->durasi_lembur, 1) }} jam
+                                             <i class="bi bi-clock me-1"></i>{{ number_format($row->durasi_lembur, 1) }} jam
                                         </span>
                                     </div>
                                     <small class="text-muted font-monospace">{{ substr($row->jam_mulai, 0, 5) }} - {{ substr($row->jam_selesai, 0, 5) }}</small>
@@ -586,13 +586,18 @@
                                     <small class="text-muted text-break">{{ $row->catatan ?: '—' }}</small>
                                 </td>
                                 <td class="text-center">
-                                    <form method="POST" action="{{ route('lembur.destroy', $row->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data lembur ini?');" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus Data">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <a href="{{ route('lembur.cetak', $row->id) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2" title="Cetak Slip SPL">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                        <form method="POST" action="{{ route('lembur.destroy', $row->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data lembur ini?');" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Hapus Data">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
