@@ -14,63 +14,145 @@
     <style>
         /* Sidebar Styles */
         #sidebar-wrapper {
-            min-height: 100vh;
-            width: 250px;
-            transition: margin 0.25s ease-out;
-            background-color: #2c3e50;
-            color: white;
+            width: 260px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease-in-out;
+            background: #1e1e2d; /* Elegant dark color */
+            color: #a1a5b7;
+            z-index: 1040;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        /* Custom Scrollbar */
+        #sidebar-wrapper::-webkit-scrollbar {
+            width: 5px;
+        }
+        #sidebar-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #sidebar-wrapper::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        #sidebar-wrapper:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         #sidebar-wrapper .sidebar-heading {
-            padding: 1.5rem 1.25rem;
+            padding: 1.25rem 1.25rem;
             font-size: 1.2rem;
             font-weight: bold;
             text-align: center;
-            background: #1a252f;
+            background: #151521;
+            color: #ffffff;
             letter-spacing: 1px;
+            border-bottom: 1px solid #2b2b40 !important;
         }
 
         #sidebar-wrapper .list-group {
-            width: 250px;
+            width: 100%;
         }
 
         #sidebar-wrapper .list-group-item {
             background-color: transparent;
-            color: #b8c7ce;
+            color: #a1a5b7;
             border: none;
             padding: 12px 20px;
-            transition: all 0.3s;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
         }
 
-        #sidebar-wrapper .list-group-item:hover, #sidebar-wrapper .list-group-item.active {
-            color: #fff;
-            background-color: #1a252f;
-            border-left: 4px solid #3498db;
+        #sidebar-wrapper .list-group-item:hover, 
+        #sidebar-wrapper .list-group-item:focus {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        #sidebar-wrapper .list-group-item.active {
+            color: #ffffff;
+            background-color: #2b2b40;
+            border-left: 4px solid #009ef7; /* Elegant primary color */
+            border-radius: 0 5px 5px 0;
+            margin-right: 10px;
         }
         
-        #sidebar-wrapper .list-group-item i {
-            margin-right: 10px;
-            font-size: 1.1rem;
+        #sidebar-wrapper .list-group-item i:first-child {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 25px;
+            text-align: center;
         }
 
         /* Submenu styling */
         .submenu {
-            background-color: #22313f;
-            padding-left: 20px;
+            background-color: #1a1a27;
         }
         .submenu .list-group-item {
-            padding: 8px 20px;
+            padding: 10px 20px 10px 55px; /* Extra indent */
             font-size: 0.9rem;
         }
+        .submenu .list-group-item.active {
+            background-color: transparent;
+            color: #009ef7;
+            border-left: none;
+            font-weight: 600;
+        }
         
-        /* Toggle effect */
-        body.sb-sidenav-toggled #sidebar-wrapper {
-            margin-left: -250px;
+        /* Chevron animation */
+        .list-group-item[data-bs-toggle="collapse"] .bi-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        .list-group-item[data-bs-toggle="collapse"][aria-expanded="true"] .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        /* Mobile Overlay */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1030;
+        }
+
+        /* Desktop vs Mobile Toggle */
+        @media (min-width: 768px) {
+            body.sb-sidenav-toggled #sidebar-wrapper {
+                margin-left: -260px;
+            }
+        }
+        @media (max-width: 767.98px) {
+            #sidebar-wrapper {
+                position: fixed;
+                margin-left: -260px;
+            }
+            body.sb-sidenav-toggled #sidebar-wrapper {
+                margin-left: 0;
+            }
+            body.sb-sidenav-toggled #sidebar-overlay {
+                display: block;
+            }
+        }
+
+        #page-content-wrapper {
+            min-width: 0;
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
+        <!-- Overlay -->
+        <div id="sidebar-overlay"></div>
+
         <!-- Sidebar -->
         <div class="border-end" id="sidebar-wrapper">
             <div class="sidebar-heading text-white border-bottom border-dark">
@@ -105,7 +187,7 @@
                         <a href="{{ route('jadwal.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('jadwal.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Jadwal Kerja</a>
                         <a href="{{ route('absensi.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('absensi.*') ? 'active' : '' }}"><i class="bi bi-person-check"></i> Data Absen</a>
                         <a href="{{ route('lembur.register') }}" class="list-group-item list-group-item-action {{ request()->routeIs('lembur.register') ? 'active' : '' }}"><i class="bi bi-moon-stars"></i> Register Lembur</a>
-                        <a href="{{ route('spl.create') }}" class="list-group-item list-group-item-action {{ request()->routeIs('spl.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-plus"></i> Input SPL</a>
+                        <!-- <a href="{{ route('spl.create') }}" class="list-group-item list-group-item-action {{ request()->routeIs('spl.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-plus"></i> Input SPL</a> -->
                     </div>
                 </div>
 
@@ -126,19 +208,22 @@
         <!-- Page Content -->
         <div id="page-content-wrapper" class="w-100 bg-light">
             <!-- Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-                <div class="container-fluid">
-                    <button class="btn btn-primary" id="sidebarToggle"><i class="bi bi-list"></i> Menu</button>
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top" style="z-index: 1020; padding: 0.75rem 0;">
+                <div class="container-fluid px-4">
+                    <button class="btn btn-light d-flex align-items-center justify-content-center" id="sidebarToggle" style="width: 42px; height: 42px; border-radius: 10px; border: 1px solid #e4e6ef; background: #ffffff; color: #7e8299;">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
                     
-                    <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                    <ul class="navbar-nav ms-auto mt-2 mt-lg-0 align-items-center">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img src="https://ui-avatars.com/api/?name=Admin+HRD&background=287bb5&color=fff" class="rounded-circle me-2" width="30" height="30" alt="User"> Admin HRD
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #5e6278; font-weight: 500;">
+                                <img src="https://ui-avatars.com/api/?name=Admin+HRD&background=009ef7&color=fff&rounded=true&bold=true" class="rounded-circle me-2 shadow-sm" width="35" height="35" alt="User"> 
+                                <span class="d-none d-md-inline">Admin HRD</span>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#!">Profile</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{ route('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                            <div class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown" style="border-radius: 8px; margin-top: 15px;">
+                                <a class="dropdown-item py-2" href="#!"><i class="bi bi-person me-2 text-muted"></i> Profile</a>
+                                <div class="dropdown-divider my-1"></div>
+                                <a class="dropdown-item py-2 text-danger" href="{{ route('logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
                             </div>
                         </li>
                     </ul>
@@ -159,10 +244,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', event => {
             const sidebarToggle = document.body.querySelector('#sidebarToggle');
+            const sidebarOverlay = document.body.querySelector('#sidebar-overlay');
+            
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', event => {
                     event.preventDefault();
                     document.body.classList.toggle('sb-sidenav-toggled');
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', event => {
+                    document.body.classList.remove('sb-sidenav-toggled');
                 });
             }
         });
