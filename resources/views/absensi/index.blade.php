@@ -58,7 +58,7 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Tanggal</th>
-                            <th>PIN Mesin</th>
+                            <th>ID Pegawai</th>
                             <th>Nama Pegawai</th>
                             <th>Clock In</th>
                             <th>Clock Out</th>

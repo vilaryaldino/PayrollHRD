@@ -144,7 +144,7 @@
                 <tr>
                     <th style="width: 50px;">No</th>
                     <th>Informasi Pegawai</th>
-                    <th>ID Mesin Absen</th>
+                    <th>ID Pegawai</th>
                     <th>Divisi & Kelompok</th>
                     <th>Kategori</th>
                     <th>Kontak & Alamat</th>
