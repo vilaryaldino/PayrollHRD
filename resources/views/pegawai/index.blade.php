@@ -1,221 +1,330 @@
 @extends('layouts.app')
 
+@section('title', 'Data Pegawai')
+
+@section('breadcrumb_parent')
+<span>Master</span>
+<span class="separator">/</span>
+@endsection
+
+@section('breadcrumb_active', 'Master Data Pegawai')
+
+@php
+function getInitials($name) {
+    $clean = trim(preg_replace('/[^a-zA-Z\s]/', '', $name));
+    $words = explode(' ', $clean);
+    if (count($words) >= 2 && !empty($words[0]) && !empty($words[1])) {
+        return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+    }
+    return strtoupper(substr($clean, 0, 2) ?: 'PG');
+}
+@endphp
+
 @section('content')
-<style>
-.pg-header h1 { font-size: 1.45rem; font-weight: 700; color: #1e293b; margin: 0; }
-.pg-header p  { font-size: .84rem; color: #64748b; margin: 3px 0 0; }
-
-.pg-card {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    overflow: hidden; border: 1px solid #e8edf2;
-}
-.pg-stats {
-    display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;
-    padding: .85rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e8edf2;
-}
-.pg-stat-item { font-size: .82rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
-.pg-stat-item strong { color: #1e293b; font-size: .92rem; }
-
-.pg-card .table { margin: 0; }
-.pg-card .table thead th {
-    background: #f1f5f9; color: #475569;
-    font-size: .72rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .05em;
-    padding: .85rem 1rem; border: none;
-    border-bottom: 2px solid #e2e8f0;
-}
-.pg-card .table tbody td {
-    padding: .85rem 1rem; border-color: #f1f5f9;
-    vertical-align: middle; font-size: .86rem; color: #334155;
-}
-.pg-card .table tbody tr:hover { background: #f8fafc; }
-
-.pg-avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: .85rem; font-weight: 700; color: #fff; flex-shrink: 0;
-}
-.pg-name   { font-weight: 600; color: #1e293b; font-size: .88rem; }
-.pg-meta   { font-size: .74rem; color: #64748b; display: flex; gap: 6px; align-items: center; }
-
-.pg-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: .72rem; font-weight: 600;
-    padding: .25rem .6rem; border-radius: 20px;
-}
-.badge-staff    { background: #dbeafe; color: #1d4ed8; }
-.badge-harian   { background: #e0e7ff; color: #4338ca; }
-.badge-aktif    { background: #d1fae5; color: #065f46; }
-.badge-nonaktif { background: #fee2e2; color: #b91c1c; }
-
-.pg-btn-action {
-    border: none; background: transparent;
-    width: 32px; height: 32px; border-radius: 6px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: .88rem; cursor: pointer; transition: background .15s;
-}
-.pg-btn-edit { color: #2563eb; } .pg-btn-edit:hover { background: #dbeafe; }
-.pg-btn-del  { color: #dc2626; } .pg-btn-del:hover  { background: #fee2e2; }
-</style>
-
-<!-- Header -->
-<div class="d-flex justify-content-between align-items-center mb-3 pg-header flex-wrap gap-2">
+<!-- Page Header Section (Matching Screenshot) -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 page-title-section">
     <div>
-        <h1><i class="bi bi-people-fill me-2 text-primary"></i>Master Data Pegawai (M_PEGAWAI)</h1>
-        <p>Tersambung langsung dengan Database MySQL: <code>payrollhrd.M_PEGAWAI</code></p>
+        <h1>Data Pegawai</h1>
+        <p>Kelola data pegawai, jabatan, divisi, dan shift kerja.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{{ route('jadwal.index') }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-calendar-check me-1"></i> Jadwal Roster Shift
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('jadwal.index') }}" class="btn btn-blue-outline">
+            <i class="bi bi-calendar-check"></i>
+            <span>Jadwal Kerja</span>
         </a>
-        <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addPegawaiModal">
-            <i class="bi bi-person-plus-fill me-1"></i> Tambah Pegawai
+        <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addPegawaiModal">
+            <i class="bi bi-plus-lg"></i>
+            <span>Tambah Pegawai</span>
         </button>
     </div>
 </div>
 
 @if (session('success'))
-<div class="alert alert-success alert-dismissible fade show border-0 rounded-3 shadow-sm py-2 mb-3">
-    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+<div class="alert alert-success alert-dismissible fade show border-0 rounded-3 shadow-sm py-2 px-3 mb-3 d-flex align-items-center justify-content-between" style="background:#ecfdf5; color:#065f46; border-left: 4px solid #10b981 !important;">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="font-size:0.75rem;"></button>
 </div>
 @endif
 
 @if (session('error'))
-<div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 shadow-sm py-2 mb-3">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Validasi Gagal:</strong> {{ session('error') }}
-    <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+<div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 shadow-sm py-2 px-3 mb-3 d-flex align-items-center justify-content-between" style="background:#fff1f2; color:#9f1239; border-left: 4px solid #e11d48 !important;">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-circle-fill me-2 fs-5 text-danger"></i>
+        <span><strong>Validasi Gagal:</strong> {{ session('error') }}</span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="font-size:0.75rem;"></button>
 </div>
 @endif
 
-<!-- Filter & Toolbar Panel -->
-<div class="card border-0 shadow-sm rounded-3 mb-3 p-3 bg-white">
+<!-- Summary Metric Cards (4 Cards matching Reference Image) -->
+<div class="row g-3 mb-4">
+    <!-- Total Pegawai -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-unified">
+            <div class="stat-number-box stat-number-blue">
+                {{ $totalPegawai }}
+            </div>
+            <div>
+                <div class="stat-label-text">Total Pegawai</div>
+                <div class="stat-sublabel-text">Database Master</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pegawai Aktif -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-unified">
+            <div class="stat-number-box stat-number-green">
+                {{ $totalAktif }}
+            </div>
+            <div>
+                <div class="stat-label-text">Pegawai Aktif</div>
+                <div class="stat-sublabel-text">Status aktif bekerja</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Staff -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-unified">
+            <div class="stat-number-box stat-number-indigo">
+                {{ $totalStaff }}
+            </div>
+            <div>
+                <div class="stat-label-text">Status Staff</div>
+                <div class="stat-sublabel-text">Pegawai Bulanan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Harian -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="stat-card-unified">
+            <div class="stat-number-box stat-number-purple">
+                {{ $totalHarian }}
+            </div>
+            <div>
+                <div class="stat-label-text">Status Harian</div>
+                <div class="stat-sublabel-text">Shift Operasional</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter & Search Toolbar Bar (Matching Reference Image) -->
+<div class="unified-filter-bar">
     <form method="GET" action="{{ route('pegawai.index') }}" class="row g-2 align-items-center">
-        <div class="col-md-4 col-sm-12">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" class="form-control border-start-0" name="search"
-                       value="{{ $searchQuery }}" placeholder="Cari nama, ID mesin, alamat...">
+        <!-- Search Box -->
+        <div class="col-lg-4 col-md-5 col-sm-12">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted" style="font-size: 0.85rem;"></i>
+                <input type="text" class="form-control search-input-pill ps-5" name="search"
+                       value="{{ $searchQuery }}" placeholder="Cari nama pegawai, ID mesin, alamat...">
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
-            <select name="filter_divisi" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="">-- Semua Divisi --</option>
+        <!-- Filter Divisi -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <select name="filter_divisi" class="form-select filter-select-pill" onchange="this.form.submit()">
+                <option value="">Filter Divisi</option>
                 @foreach ($masterDivisi as $div)
-                    <option value="{{ $div->ID_DIVISI }}" {{ $filterDivisi == $div->ID_DIVISI ? 'selected' : '' }}>
+                    <option value="{{ $div->ID_DIVISI }}" {{ (string)$filterDivisi === (string)$div->ID_DIVISI ? 'selected' : '' }}>
                         {{ $div->NAMA_DIVISI }}
                     </option>
                 @endforeach
             </select>
         </div>
 
-        <div class="col-md-3 col-sm-6">
-            <select name="filter_status" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="">-- Semua Status Pegawai --</option>
-                <option value="1" {{ $filterStatus === '1' ? 'selected' : '' }}>Hanya Pegawai Aktif</option>
-                <option value="0" {{ $filterStatus === '0' ? 'selected' : '' }}>Hanya Non-Aktif / Resign</option>
+        <!-- Filter Status -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <select name="filter_status" class="form-select filter-select-pill" onchange="this.form.submit()">
+                <option value="">Filter Status</option>
+                <option value="1" {{ (string)$filterStatus === '1' ? 'selected' : '' }}>Aktif</option>
+                <option value="0" {{ (string)$filterStatus === '0' ? 'selected' : '' }}>Non-Aktif / Resign</option>
             </select>
         </div>
- 
-        <div class="col-md-2 col-sm-12 d-flex gap-1 justify-content-end">
-            <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
-            @if ($filterDivisi !== '' || $filterStatus !== '' || $searchQuery !== '')
-                <a href="{{ route('pegawai.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset Filter"><i class="bi bi-arrow-counterclockwise"></i></a>
-            @endif
+
+        <!-- Counter & Actions -->
+        <div class="col-lg-4 col-md-12 d-flex align-items-center justify-content-lg-end justify-content-between gap-2 mt-2 mt-lg-0">
+            <span class="text-muted small fw-medium">
+                {{ count($pegawaiList) }} pegawai ditemukan
+            </span>
+            <div class="d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-light border px-3" title="Terapkan Filter">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                @if ($filterDivisi !== '' && $filterDivisi !== null || $filterStatus !== '' && $filterStatus !== null || $searchQuery !== '' && $searchQuery !== null)
+                    <a href="{{ route('pegawai.index') }}" class="btn btn-sm btn-light border text-danger" title="Reset Filter">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                @endif
+            </div>
         </div>
     </form>
 </div>
 
-<!-- Container Tabel Pegawai -->
-<div class="pg-card">
-    <div class="pg-stats">
-        <div class="pg-stat-item"><i class="bi bi-people text-primary"></i> Total: <strong>{{ $totalPegawai }}</strong></div>
-        <div class="pg-stat-item"><i class="bi bi-check-circle text-success"></i> Aktif: <strong>{{ $totalAktif }}</strong></div>
-        <div class="pg-stat-item"><i class="bi bi-x-circle text-danger"></i> Resign: <strong>{{ $totalNonAktif }}</strong></div>
-        <div class="pg-stat-item"><i class="bi bi-person-badge text-info"></i> Staff: <strong>{{ $totalStaff }}</strong></div>
-        <div class="pg-stat-item"><i class="bi bi-person-lines-fill text-warning"></i> Harian: <strong>{{ $totalHarian }}</strong></div>
-    </div>
-
+<!-- Main Table Container (Matching Reference Image) -->
+<div class="unified-card">
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="unified-table">
             <thead>
                 <tr>
-                    <th style="width: 50px;">No</th>
-                    <th>Informasi Pegawai</th>
-                    <th>ID Pegawai</th>
-                    <th>Divisi & Kelompok</th>
-                    <th>Kategori</th>
-                    <th>Kontak & Alamat</th>
-                    <th>Status</th>
-                    <th style="width: 80px; text-align: center;">Aksi</th>
+                    <th style="width: 50px; text-align: center;">NO</th>
+                    <th>NAMA PEGAWAI</th>
+                    <th>DIVISI</th>
+                    <th>JABATAN</th>
+                    <th>SHIFT AKTIF / REGU</th>
+                    <th>STATUS</th>
+                    <th style="width: 100px; text-align: center;">AKSI</th>
                 </tr>
             </thead>
             <tbody>
             @forelse ($pegawaiList as $p)
                 @php 
-                    $color = $avatarColors[($p->ID_PEGAWAI - 1) % count($avatarColors)];
                     $isAktif = (int)$p->IS_AKTIF;
+                    $initials = getInitials($p->NM_PEGAWAI);
+                    $empCode = 'EMP-' . str_pad($p->ID_PEGAWAI, 4, '0', STR_PAD_LEFT);
                 @endphp
-                <tr class="{{ !$isAktif ? 'opacity-75 bg-light' : '' }}">
-                    <td class="text-muted small">{{ $loop->iteration }}</td>
+                <tr class="{{ !$isAktif ? 'opacity-75' : '' }}">
+                    <td style="text-align: center; color: #94a3b8; font-size: 0.82rem;">
+                        {{ $loop->iteration }}
+                    </td>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="pg-avatar" style="background: {{ $color }};">
-                                {{ strtoupper(substr($p->NM_PEGAWAI, 0, 1)) }}
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="table-avatar-circle">
+                                {{ $initials }}
                             </div>
                             <div>
-                                <div class="pg-name">{{ $p->NM_PEGAWAI }}</div>
-                                <div class="pg-meta">
-                                    <span>ID: EMP-{{ str_pad($p->ID_PEGAWAI, 4, '0', STR_PAD_LEFT) }}</span>
+                                <div class="table-user-name">{{ $p->NM_PEGAWAI }}</div>
+                                <div class="table-user-meta">
+                                    <span>{{ $empCode }}</span>
+                                    @if($p->ID_PEGAWAI_MESIN)
+                                        <span class="mx-1">•</span>
+                                        <span>PIN: {{ $p->ID_PEGAWAI_MESIN }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
-                            <i class="bi bi-fingerprint text-primary me-1"></i>{{ $p->ID_PEGAWAI_MESIN ?: '-' }}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="fw-semibold text-dark small"><i class="bi bi-building me-1 text-muted"></i>{{ $p->NAMA_DIVISI ?? 'Tanpa Divisi' }}</div>
-                        <div class="text-muted small"><i class="bi bi-people me-1"></i>{{ $p->NAMA_KELOMPOK ?? 'Non-Kelompok' }}</div>
+                        <span class="fw-semibold text-dark small">{{ $p->NAMA_DIVISI ?? '-' }}</span>
                     </td>
                     <td>
                         @if ($p->JENIS_PEGAWAI === 'Staff')
-                            <span class="pg-badge badge-staff"><i class="bi bi-person-badge"></i> Staff</span>
+                            <span class="soft-badge badge-staff-soft">Staff</span>
+                        @elseif ($p->JENIS_PEGAWAI === 'Harian')
+                            <span class="soft-badge badge-harian-soft">Harian</span>
                         @else
-                            <span class="pg-badge badge-harian"><i class="bi bi-person-lines-fill"></i> Harian</span>
+                            <span class="soft-badge badge-kontrak-soft">{{ $p->JENIS_PEGAWAI ?: 'Kontrak' }}</span>
                         @endif
                     </td>
                     <td>
-                        <div class="small text-dark"><i class="bi bi-telephone me-1 text-muted"></i>{{ $p->NO_TELP_HP ?: '-' }}</div>
-                        <div class="text-muted small text-truncate" style="max-width: 200px;" title="{{ $p->ALAMAT ?: '-' }}">
-                            <i class="bi bi-geo-alt me-1"></i>{{ $p->ALAMAT ?: '-' }}
-                        </div>
+                        @if ($p->NAMA_KELOMPOK)
+                            <span class="status-dot-indicator dot-shift-pagi">{{ $p->NAMA_KELOMPOK }}</span>
+                        @elseif ($p->JENIS_PEGAWAI === 'Staff')
+                            <span class="status-dot-indicator dot-shift-pagi">Pagi (Reguler)</span>
+                        @else
+                            <span class="status-dot-indicator dot-shift-pagi">Pagi</span>
+                        @endif
                     </td>
                     <td>
                         @if ($isAktif === 1)
-                            <span class="pg-badge badge-aktif"><i class="bi bi-check-circle-fill"></i> Aktif</span>
+                            <span class="status-dot-indicator dot-aktif">Aktif</span>
                         @else
-                            <span class="pg-badge badge-nonaktif"><i class="bi bi-dash-circle-fill"></i> Resign</span>
+                            <span class="status-dot-indicator dot-nonaktif">Non-Aktif</span>
                         @endif
                     </td>
-                    <td style="text-align: center;">
-                        <button class="pg-btn-action pg-btn-edit" title="Edit Pegawai"
-                                data-bs-toggle="modal" data-bs-target="#editModal{{ $p->ID_PEGAWAI }}">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <form method="POST" action="{{ route('pegawai.destroy', $p->ID_PEGAWAI) }}" class="d-inline" onsubmit="return confirm('Hapus data pegawai {{ addslashes($p->NM_PEGAWAI) }} dari database?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="pg-btn-action pg-btn-del" title="Hapus">
-                                <i class="bi bi-trash3"></i>
+                    <td>
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <!-- View Detail Button -->
+                            <button class="action-icon-btn" title="Lihat Detail Pegawai"
+                                    data-bs-toggle="modal" data-bs-target="#viewModal{{ $p->ID_PEGAWAI }}">
+                                <i class="bi bi-eye"></i>
                             </button>
-                        </form>
+
+                            <!-- Edit Button -->
+                            <button class="action-icon-btn" title="Edit Pegawai"
+                                    data-bs-toggle="modal" data-bs-target="#editModal{{ $p->ID_PEGAWAI }}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+
+                            <!-- Delete Form -->
+                            <form method="POST" action="{{ route('pegawai.destroy', $p->ID_PEGAWAI) }}" class="d-inline" onsubmit="return confirm('Hapus data pegawai {{ addslashes($p->NM_PEGAWAI) }} dari database?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="action-icon-btn btn-delete" title="Hapus Pegawai">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
+
+                <!-- Modal Detail Pegawai -->
+                <div class="modal fade" id="viewModal{{ $p->ID_PEGAWAI }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-person-badge text-primary me-2"></i>Detail Data Pegawai
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                                    <div class="table-avatar-circle" style="width: 52px; height: 52px; font-size: 1.2rem;">
+                                        {{ $initials }}
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">{{ $p->NM_PEGAWAI }}</h5>
+                                        <div class="text-muted small">{{ $empCode }} &bull; PIN Mesin: {{ $p->ID_PEGAWAI_MESIN ?: '-' }}</div>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="text-muted small">Divisi Kerja</div>
+                                        <div class="fw-semibold text-dark">{{ $p->NAMA_DIVISI ?? '-' }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted small">Kelompok / Regu</div>
+                                        <div class="fw-semibold text-dark">{{ $p->NAMA_KELOMPOK ?? '-' }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted small">Jenis Pegawai</div>
+                                        <div class="fw-semibold text-dark">{{ $p->JENIS_PEGAWAI ?? '-' }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted small">Status Kerja</div>
+                                        <div>
+                                            @if ($isAktif === 1)
+                                                <span class="status-dot-indicator dot-aktif">Aktif Bekerja</span>
+                                            @else
+                                                <span class="status-dot-indicator dot-nonaktif">Non-Aktif / Resign</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">No. HP / WhatsApp</div>
+                                        <div class="fw-semibold text-dark">{{ $p->NO_TELP_HP ?: '-' }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="text-muted small">Alamat Tinggal</div>
+                                        <div class="fw-semibold text-dark">{{ $p->ALAMAT ?: '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal">Tutup</button>
+                                <button type="button" class="btn btn-sm btn-orange" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#editModal{{ $p->ID_PEGAWAI }}">
+                                    <i class="bi bi-pencil-square me-1"></i> Edit Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Modal Edit Pegawai -->
                 <div class="modal fade" id="editModal{{ $p->ID_PEGAWAI }}" tabindex="-1" aria-hidden="true">
@@ -223,30 +332,30 @@
                         <form method="POST" action="{{ route('pegawai.update', $p->ID_PEGAWAI) }}">
                             @csrf
                             @method('PUT')
-                            <div class="modal-content rounded-4 border-0 shadow">
-                                <div class="modal-header bg-dark text-white rounded-top-4">
-                                    <h5 class="modal-title fs-6 fw-semibold">
-                                        <i class="bi bi-pencil-square me-2"></i>Edit Pegawai: {{ $p->NM_PEGAWAI }}
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-pencil-square text-primary me-2"></i>Edit Pegawai: {{ $p->NM_PEGAWAI }}
                                     </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body p-4">
                                     <div class="row g-3 text-start">
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Nama Lengkap (NM_PEGAWAI)</label>
-                                            <input type="text" class="form-control" name="nama" value="{{ $p->NM_PEGAWAI }}" required>
+                                            <label class="form-label small fw-bold text-dark">Nama Lengkap (NM_PEGAWAI)</label>
+                                            <input type="text" class="form-control filter-select-pill" name="nama" value="{{ $p->NM_PEGAWAI }}" required>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">ID Mesin Fingerprint (ID_PEGAWAI_MESIN)</label>
-                                            <input type="text" class="form-control" name="id_pegawai_mesin" value="{{ $p->ID_PEGAWAI_MESIN ?? '' }}" placeholder="contoh: FP001">
+                                            <label class="form-label small fw-bold text-dark">ID Mesin Fingerprint (ID_PEGAWAI_MESIN)</label>
+                                            <input type="text" class="form-control filter-select-pill" name="id_pegawai_mesin" value="{{ $p->ID_PEGAWAI_MESIN ?? '' }}" placeholder="contoh: FP001">
                                             <div class="form-text" style="font-size: 0.72rem; color: #64748b;">
                                                 <i class="bi bi-info-circle me-1"></i>Boleh menggunakan ID Mesin dari pegawai yang berstatus <strong>Resign</strong>.
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Divisi (M_DIVISI)</label>
-                                            <select class="form-select" name="id_divisi" required>
+                                            <label class="form-label small fw-bold text-dark">Divisi (M_DIVISI)</label>
+                                            <select class="form-select filter-select-pill" name="id_divisi" required>
                                                 @foreach ($masterDivisi as $div)
                                                     <option value="{{ $div->ID_DIVISI }}" {{ (int)$p->ID_DIVISI === (int)$div->ID_DIVISI ? 'selected' : '' }}>
                                                         {{ $div->NAMA_DIVISI }}
@@ -255,8 +364,8 @@
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Kelompok / Regu Kerja (M_KELOMPOK)</label>
-                                            <select class="form-select" name="id_kelompok">
+                                            <label class="form-label small fw-bold text-dark">Kelompok / Regu Kerja (M_KELOMPOK)</label>
+                                            <select class="form-select filter-select-pill" name="id_kelompok">
                                                 <option value="">-- Tanpa Kelompok --</option>
                                                 @foreach ($masterKelompok as $kel)
                                                     <option value="{{ $kel->ID_KELOMPOK }}" {{ (int)$p->ID_KELOMPOK === (int)$kel->ID_KELOMPOK ? 'selected' : '' }}>
@@ -267,34 +376,34 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Jenis Pegawai (JENIS_PEGAWAI)</label>
-                                            <select class="form-select" name="jenis" required>
+                                            <label class="form-label small fw-bold text-dark">Jenis Pegawai (JENIS_PEGAWAI)</label>
+                                            <select class="form-select filter-select-pill" name="jenis" required>
                                                 <option value="Staff" {{ $p->JENIS_PEGAWAI === 'Staff' ? 'selected' : '' }}>Staff (Bulanan)</option>
                                                 <option value="Harian" {{ $p->JENIS_PEGAWAI === 'Harian' ? 'selected' : '' }}>Harian (Shift Reguler)</option>
                                                 <option value="Kontrak" {{ $p->JENIS_PEGAWAI === 'Kontrak' ? 'selected' : '' }}>Kontrak</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Status Kepegawaian (IS_AKTIF)</label>
-                                            <select class="form-select" name="is_aktif" required>
+                                            <label class="form-label small fw-bold text-dark">Status Kepegawaian (IS_AKTIF)</label>
+                                            <select class="form-select filter-select-pill" name="is_aktif" required>
                                                 <option value="1" {{ $isAktif === 1 ? 'selected' : '' }}>Aktif Bekerja</option>
                                                 <option value="0" {{ $isAktif === 0 ? 'selected' : '' }}>Non-Aktif / Resign</option>
                                             </select>
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Nomor HP / WhatsApp (NO_TELP_HP)</label>
-                                            <input type="text" class="form-control" name="no_telp" value="{{ $p->NO_TELP_HP ?? '' }}" placeholder="08xxxxxxxxx">
+                                            <label class="form-label small fw-bold text-dark">Nomor HP / WhatsApp (NO_TELP_HP)</label>
+                                            <input type="text" class="form-control filter-select-pill" name="no_telp" value="{{ $p->NO_TELP_HP ?? '' }}" placeholder="08xxxxxxxxx">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Alamat Tinggal (ALAMAT)</label>
-                                            <input type="text" class="form-control" name="alamat" value="{{ $p->ALAMAT ?? '' }}" placeholder="Alamat domisili">
+                                            <label class="form-label small fw-bold text-dark">Alamat Tinggal (ALAMAT)</label>
+                                            <input type="text" class="form-control filter-select-pill" name="alamat" value="{{ $p->ALAMAT ?? '' }}" placeholder="Alamat domisili">
                                         </div>
                                     </div>
                                 </div>
-                                <div class="modal-footer bg-light rounded-bottom-4">
-                                    <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-sm btn-primary px-4">Simpan Perubahan</button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-sm btn-orange px-4">Simpan Perubahan</button>
                                 </div>
                             </div>
                         </form>
@@ -302,46 +411,58 @@
                 </div>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                        Tidak ada data pegawai yang sesuai kriteria pencarian / filter di database.
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted opacity-50"></i>
+                        Tidak ada data pegawai yang sesuai kriteria pencarian / filter.
                     </td>
                 </tr>
             @endforelse
             </tbody>
         </table>
     </div>
+
+    <!-- Table Footer / Pagination (Matching Reference Image) -->
+    <div class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap gap-2">
+        <span class="text-muted small">
+            Menampilkan 1-{{ count($pegawaiList) }} dari {{ $totalPegawai }} pegawai
+        </span>
+        <ul class="unified-pagination">
+            <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#">&gt;</a></li>
+        </ul>
+    </div>
 </div>
 
-<!-- Modal Tambah Pegawai -->
+<!-- Modal Tambah Pegawai (Matching Unified Theme) -->
 <div class="modal fade" id="addPegawaiModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <form method="POST" action="{{ route('pegawai.store') }}">
             @csrf
-            <div class="modal-content rounded-4 border-0 shadow">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fs-6 fw-semibold">
-                        <i class="bi bi-person-plus-fill me-2"></i>Tambah Pegawai Baru (Database MySQL)
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus-fill text-primary me-2"></i>Tambah Data Pegawai Baru
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Nama Lengkap (NM_PEGAWAI)</label>
-                            <input type="text" class="form-control" name="nama" required placeholder="contoh: Andi Wijaya">
+                            <label class="form-label small fw-bold text-dark">Nama Lengkap (NM_PEGAWAI)</label>
+                            <input type="text" class="form-control filter-select-pill" name="nama" required placeholder="contoh: Andi Wijaya">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">ID Mesin Fingerprint (ID_PEGAWAI_MESIN)</label>
-                            <input type="text" class="form-control" name="id_pegawai_mesin" placeholder="contoh: FP007">
+                            <label class="form-label small fw-bold text-dark">ID Mesin Fingerprint (ID_PEGAWAI_MESIN)</label>
+                            <input type="text" class="form-control filter-select-pill" name="id_pegawai_mesin" placeholder="contoh: FP007">
                             <div class="form-text" style="font-size: 0.72rem; color: #64748b;">
-                                <i class="bi bi-info-circle me-1"></i>Boleh menggunakan ID Mesin dari pegawai yang sudah <strong>Resign</strong>. Tidak boleh sama dengan pegawai yang masih <strong>Aktif</strong>.
+                                <i class="bi bi-info-circle me-1"></i>Boleh menggunakan ID Mesin dari pegawai yang sudah <strong>Resign</strong>.
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Divisi (M_DIVISI)</label>
-                            <select class="form-select" name="id_divisi" required>
+                            <label class="form-label small fw-bold text-dark">Divisi (M_DIVISI)</label>
+                            <select class="form-select filter-select-pill" name="id_divisi" required>
                                 <option value="">-- Pilih Divisi --</option>
                                 @foreach ($masterDivisi as $div)
                                     <option value="{{ $div->ID_DIVISI }}">{{ $div->NAMA_DIVISI }}</option>
@@ -349,8 +470,8 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Kelompok / Regu Kerja (M_KELOMPOK)</label>
-                            <select class="form-select" name="id_kelompok">
+                            <label class="form-label small fw-bold text-dark">Kelompok / Regu Kerja (M_KELOMPOK)</label>
+                            <select class="form-select filter-select-pill" name="id_kelompok">
                                 <option value="">-- Tanpa Kelompok --</option>
                                 @foreach ($masterKelompok as $kel)
                                     <option value="{{ $kel->ID_KELOMPOK }}">{{ $kel->NAMA_KELOMPOK }}</option>
@@ -359,37 +480,38 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Jenis Pegawai (JENIS_PEGAWAI)</label>
-                            <select class="form-select" name="jenis" required>
+                            <label class="form-label small fw-bold text-dark">Jenis Pegawai (JENIS_PEGAWAI)</label>
+                            <select class="form-select filter-select-pill" name="jenis" required>
                                 <option value="Harian" selected>Harian (Shift Reguler)</option>
                                 <option value="Staff">Staff (Bulanan)</option>
                                 <option value="Kontrak">Kontrak</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Status Kepegawaian (IS_AKTIF)</label>
-                            <select class="form-select" name="is_aktif" required>
+                            <label class="form-label small fw-bold text-dark">Status Kepegawaian (IS_AKTIF)</label>
+                            <select class="form-select filter-select-pill" name="is_aktif" required>
                                 <option value="1" selected>Aktif Bekerja</option>
                                 <option value="0">Non-Aktif / Resign</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Nomor HP / WhatsApp (NO_TELP_HP)</label>
-                            <input type="text" class="form-control" name="no_telp" placeholder="contoh: 081234567890">
+                            <label class="form-label small fw-bold text-dark">Nomor HP / WhatsApp (NO_TELP_HP)</label>
+                            <input type="text" class="form-control filter-select-pill" name="no_telp" placeholder="contoh: 081234567890">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Alamat Tinggal (ALAMAT)</label>
-                            <input type="text" class="form-control" name="alamat" placeholder="Jl. Raya No...">
+                            <label class="form-label small fw-bold text-dark">Alamat Tinggal (ALAMAT)</label>
+                            <input type="text" class="form-control filter-select-pill" name="alamat" placeholder="Jl. Raya No...">
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-primary px-4">Simpan Pegawai ke Database</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-orange px-4">Simpan Pegawai</button>
                 </div>
             </div>
         </form>
     </div>
 </div>
 @endsection
+
