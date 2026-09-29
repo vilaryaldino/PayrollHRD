@@ -76,7 +76,7 @@ class AbsensiController extends Controller
         }
 
         DataAbsensi::updateOrCreate(
-            ['id_mesin' => $request->id_pegawai, 'tanggal' => $request->tanggal],
+            ['id_pegawai_mesin' => $request->id_pegawai, 'tanggal' => $request->tanggal],
             [
                 'id_pegawai'     => $idPegawai,
                 'nama_pegawai'   => $namaPegawai,

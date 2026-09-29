@@ -1,0 +1,13 @@
+Array
+(
+    [0] => id
+    [1] => id_pegawai_mesin
+    [2] => id_pegawai
+    [3] => nama_pegawai
+    [4] => tanggal
+    [5] => jam_kehadiran
+    [6] => jam_kepulangan
+    [7] => lokasi_absen
+    [8] => created_at
+    [9] => updated_at
+)

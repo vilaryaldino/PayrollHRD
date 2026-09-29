@@ -1,0 +1,14 @@
+Array
+(
+    [0] => ID_PEGAWAI
+    [1] => ID_PEGAWAI_MESIN
+    [2] => NM_PEGAWAI
+    [3] => ID_DIVISI
+    [4] => JENIS_PEGAWAI
+    [5] => IS_AKTIF
+    [6] => ALAMAT
+    [7] => NO_TELP_HP
+    [8] => ID_KELOMPOK
+    [9] => CREATED_AT
+    [10] => UPDATED_AT
+)
