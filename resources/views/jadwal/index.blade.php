@@ -138,6 +138,13 @@
             <form method="GET" action="{{ route('jadwal.index') }}" class="d-flex flex-wrap gap-2 justify-content-md-end">
                 <input type="hidden" name="date" value="{{ $selectedDate }}">
                 
+                <span class="small text-muted align-self-center">Tampil:</span>
+                <select name="per_page" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+
                 <select name="divisi" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
                     <option value="">-- Semua Divisi --</option>
                     @foreach ($masterDivisi as $div)
@@ -284,6 +291,9 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+    <div class="card-footer bg-white py-3 border-top-0 border-bottom-0" style="border-radius: 0 0 12px 12px;">
+        {{ $pegawaiList->links('pagination::bootstrap-5') }}
     </div>
 </div>
 

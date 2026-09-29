@@ -149,8 +149,16 @@ function getInitials($name) {
 
         <!-- Counter & Actions -->
         <div class="col-lg-4 col-md-12 d-flex align-items-center justify-content-lg-end justify-content-between gap-2 mt-2 mt-lg-0">
+            <div class="d-flex align-items-center gap-2 me-2">
+                <span class="small text-muted">Tampil:</span>
+                <select name="per_page" class="form-select filter-select-pill form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
             <span class="text-muted small fw-medium">
-                {{ count($pegawaiList) }} pegawai ditemukan
+                {{ $pegawaiList->total() }} pegawai ditemukan
             </span>
             <div class="d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-light border px-3" title="Terapkan Filter">
@@ -421,16 +429,9 @@ function getInitials($name) {
         </table>
     </div>
 
-    <!-- Table Footer / Pagination (Matching Reference Image) -->
-    <div class="d-flex justify-content-between align-items-center p-3 border-top flex-wrap gap-2">
-        <span class="text-muted small">
-            Menampilkan 1-{{ count($pegawaiList) }} dari {{ $totalPegawai }} pegawai
-        </span>
-        <ul class="unified-pagination">
-            <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item disabled"><a class="page-link" href="#">&gt;</a></li>
-        </ul>
+    <!-- Table Footer / Pagination -->
+    <div class="card-footer bg-white py-3 border-top-0 border-bottom-0" style="border-radius: 0 0 12px 12px;">
+        {{ $pegawaiList->links('pagination::bootstrap-5') }}
     </div>
 </div>
 

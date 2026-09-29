@@ -80,14 +80,22 @@ if (!function_exists('getInitials')) {
         </div>
 
         <div class="col-lg-4 col-md-12 d-flex align-items-center justify-content-lg-end justify-content-between gap-2 mt-2 mt-lg-0">
+            <div class="d-flex align-items-center gap-2 me-2">
+                <span class="small text-muted">Tampil:</span>
+                <select name="per_page" class="form-select filter-select-pill form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
             <span class="text-muted small fw-medium">
-                {{ count($absensis) }} data ditampilkan
+                {{ $absensis->total() }} data ditemukan
             </span>
             <div class="d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-light border px-3" title="Terapkan Filter">
                     <i class="bi bi-funnel"></i>
                 </button>
-                @if (request('search') || request('start_date') || request('end_date'))
+                @if (request('search') || request('start_date') || request('end_date') || request('per_page'))
                     <a href="{{ route('absensi.index') }}" class="btn btn-sm btn-light border text-danger" title="Reset Filter">
                         <i class="bi bi-x-circle"></i>
                     </a>

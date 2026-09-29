@@ -69,7 +69,8 @@ class JadwalController extends Controller
         if ($filterJenis !== null && $filterJenis !== '') {
             $queryPeg->where('p.JENIS_PEGAWAI', $filterJenis);
         }
-        $pegawaiList = $queryPeg->orderBy('p.ID_PEGAWAI', 'ASC')->get();
+        $perPage = $request->get('per_page', 25);
+        $pegawaiList = $queryPeg->orderBy('p.ID_PEGAWAI', 'ASC')->paginate($perPage)->withQueryString();
 
         // 5. Jadwal Map
         $jadwalRows = DB::table('t_jadwal_kerja')

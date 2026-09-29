@@ -40,7 +40,8 @@ class PegawaiController extends Controller
             });
         }
 
-        $pegawaiList = $query->orderBy('p.ID_PEGAWAI', 'ASC')->get();
+        $perPage = $request->get('per_page', 25);
+        $pegawaiList = $query->orderBy('p.ID_PEGAWAI', 'ASC')->paginate($perPage)->withQueryString();
 
         // Statistics
         $totalPegawai = DB::table('m_pegawai')->count();

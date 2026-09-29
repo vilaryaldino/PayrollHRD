@@ -34,7 +34,8 @@ class AbsensiController extends Controller
         $query->orderBy('tanggal', 'desc')->orderBy('jam_kehadiran', 'asc');
         
         // Paginasi bawaan Laravel
-        $absensis = $query->paginate(15)->withQueryString();
+        $perPage = $request->get('per_page', 25);
+        $absensis = $query->paginate($perPage)->withQueryString();
 
         // Data Pegawai untuk modal manual
         $pegawais = DB::table('m_pegawai')->where('IS_AKTIF', 1)->whereNotNull('ID_PEGAWAI_MESIN')->orderBy('NM_PEGAWAI', 'ASC')->get();
