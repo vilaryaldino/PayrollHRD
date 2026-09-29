@@ -16,6 +16,12 @@ class DataAbsensi extends Model
         'tanggal',
         'jam_kehadiran',
         'jam_kepulangan',
-        'lokasi_absen'
+        'lokasi_absen',
+        'departemen',
+        'posisi',
+        'sn_perangkat',
+        'status',
+        'keterangan',
+        'method'
     ];
 }
