@@ -18,7 +18,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 // Protected Routes
 Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
     
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
