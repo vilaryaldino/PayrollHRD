@@ -53,6 +53,9 @@ Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
 
     // Route Data Lembur
     Route::get('/lembur/register', [LemburController::class, 'register'])->name('lembur.register');
+    Route::get('/lembur/register-otomatis', [LemburController::class, 'registerOtomatis'])->name('lembur.register_otomatis');
+    Route::post('/lembur/fetch-presensi', [LemburController::class, 'fetchPresensi'])->name('lembur.fetch_presensi');
+    Route::post('/lembur/sync', [LemburController::class, 'syncLemburOtomatis'])->name('lembur.sync_otomatis');
     Route::post('/lembur/register', [LemburController::class, 'store'])->name('lembur.store');
     Route::get('/lembur/{id}/cetak', [LemburController::class, 'cetakSlip'])->name('lembur.cetak');
     Route::delete('/lembur/{id}', [LemburController::class, 'destroy'])->name('lembur.destroy');
@@ -61,6 +64,8 @@ Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
     Route::get('/laporan/uang-makan', [LaporanController::class, 'uangMakan'])->name('laporan.uang-makan');
     Route::get('/laporan/lembur', [LaporanController::class, 'lembur'])->name('laporan.lembur');
     Route::get('/laporan/lembur/detail', [LaporanController::class, 'lemburDetail'])->name('laporan.lembur.detail');
+    Route::get('/laporan/rekapitulasi', [LaporanController::class, 'rekapitulasi'])->name('laporan.rekap');
+    Route::get('/laporan/rekapitulasi/cetak/{id_pegawai}', [LaporanController::class, 'cetakRekap'])->name('laporan.cetak-rekap');
 
     // Route Surat Perintah Lembur
     Route::get('/spl/create', [\App\Http\Controllers\SplController::class, 'create'])->name('spl.create');

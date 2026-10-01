@@ -46,8 +46,9 @@
                             <th class="ps-4">No</th>
                             <th>PIN / ID Pegawai</th>
                             <th>Nama Pegawai</th>
-                            <th class="text-center">Total Hari Hadir</th>
-                            <th class="text-end pe-4">Total Uang Makan</th>
+                            <th class="text-center">UM Harian (Hadir)</th>
+                            <th class="text-center">UM Lembur (>= 19:00)</th>
+                            <th class="text-end pe-4">Total Nominal</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,7 +57,8 @@
                                 <td class="ps-4">{{ $loop->iteration }}</td>
                                 <td><span class="badge bg-secondary">{{ $row->id_pegawai }}</span></td>
                                 <td class="fw-medium">{{ $row->nama_pegawai }}</td>
-                                <td class="text-center fw-bold text-success">{{ $row->total_hari_hadir }} Hari</td>
+                                <td class="text-center fw-bold text-success">{{ $row->total_hari_hadir }} Hari<br><small class="text-muted fw-normal">Rp {{ number_format($row->nominal_um, 0, ',', '.') }}</small></td>
+                                <td class="text-center fw-bold text-warning">{{ $row->total_um_lembur }} Hari<br><small class="text-muted fw-normal">Rp {{ number_format($row->nominal_uml, 0, ',', '.') }}</small></td>
                                 <td class="text-end pe-4 fw-bold">Rp {{ number_format($row->total_uang_makan, 0, ',', '.') }}</td>
                             </tr>
                         @empty
@@ -67,7 +69,7 @@
                     </tbody>
                     <tfoot class="bg-light fw-bold">
                         <tr>
-                            <td colspan="4" class="text-end">GRAND TOTAL :</td>
+                            <td colspan="5" class="text-end">GRAND TOTAL :</td>
                             <td class="text-end pe-4 text-primary fs-5">Rp {{ number_format(collect($laporan)->sum('total_uang_makan'), 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
@@ -126,11 +128,20 @@
                 @foreach($laporan as $index => $row)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $row->nama_pegawai }} - Uang Makan</td>
+                    <td>{{ $row->nama_pegawai }} - Uang Makan (Harian)</td>
                     <td class="text-center">{{ $row->total_hari_hadir }}</td>
                     <td class="text-end">Rp. 15,000</td>
-                    <td class="text-end">Rp. {{ number_format($row->total_uang_makan, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp. {{ number_format($row->nominal_um, 0, ',', '.') }}</td>
                 </tr>
+                @if($row->total_um_lembur > 0)
+                <tr>
+                    <td class="text-center"></td>
+                    <td>{{ $row->nama_pegawai }} - Uang Makan (Lembur)</td>
+                    <td class="text-center">{{ $row->total_um_lembur }}</td>
+                    <td class="text-end">Rp. 15,000</td>
+                    <td class="text-end">Rp. {{ number_format($row->nominal_uml, 0, ',', '.') }}</td>
+                </tr>
+                @endif
                 @endforeach
             </tbody>
             <tfoot>

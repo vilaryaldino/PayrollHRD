@@ -213,7 +213,7 @@
             <thead>
                 <tr>
                     <th colspan="2">Kategori / Item</th>
-                    <th class="col-qty">J A M</th>
+                    <th class="col-qty">H A R I</th>
                     <th class="col-rate">Nominal</th>
                     <th class="col-amount">IDR</th>
                 </tr>

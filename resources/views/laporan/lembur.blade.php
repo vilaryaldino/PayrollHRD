@@ -8,14 +8,9 @@ $namaBulan = [
     9=>'September',10=>'Oktober',11=>'November',12=>'Desember'
 ];
 
-function fmtJam($desimal) {
-    if ((float)$desimal <= 0) return '<span class="text-muted">0 jam</span>';
-    $mnt  = (int)round((float)$desimal * 60);
-    $j    = intdiv($mnt, 60);
-    $m    = $mnt % 60;
-    if ($j > 0 && $m > 0) return "{$j} jam {$m} mnt";
-    if ($j > 0) return "{$j} jam";
-    return "{$m} menit";
+function fmtHari($desimal) {
+    if ((float)$desimal <= 0) return '<span class="text-muted">0 Hari</span>';
+    return "{$desimal} Hari";
 }
 @endphp
 
@@ -25,8 +20,7 @@ function fmtJam($desimal) {
             <i class="bi bi-moon-stars-fill me-2"></i>Laporan Lembur Pegawai
         </h4>
         <small class="text-muted">
-            Rekapitulasi lembur (SPL) berdasarkan registrasi &mdash;
-            Uang makan lembur <strong class="text-warning">Rp 15.000</strong> jika selesai lewat pukul 20:00
+            Rekapitulasi lembur (SPL) berdasarkan registrasi
         </small>
     </div>
     <button class="btn btn-outline-secondary" onclick="window.print()">
@@ -62,7 +56,7 @@ function fmtJam($desimal) {
 
 <!-- KARTU RINGKASAN -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-3 h-100" style="border-left:4px solid #dc3545 !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-3 p-3 flex-shrink-0" style="background:#fdecea;">
@@ -76,7 +70,7 @@ function fmtJam($desimal) {
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-3 h-100" style="border-left:4px solid #6c757d !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-3 p-3 flex-shrink-0" style="background:#f2f3f4;">
@@ -90,7 +84,7 @@ function fmtJam($desimal) {
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-3 h-100" style="border-left:4px solid #212529 !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-3 p-3 flex-shrink-0" style="background:#e9ecef;">
@@ -104,21 +98,7 @@ function fmtJam($desimal) {
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm rounded-3 h-100" style="border-left:4px solid #ffc107 !important;">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-3 p-3 flex-shrink-0" style="background:#fff8e1;">
-                    <i class="bi bi-wallet2 fs-2 text-warning"></i>
-                </div>
-                <div>
-                    <div class="text-muted small fw-semibold">Total Uang Makan Lembur</div>
-                    <div class="fs-5 fw-bold text-dark lh-1">Rp {{ number_format($grandUangMakan, 0, ',', '.') }}</div>
-                    <div class="text-muted small">yang wajib dibayarkan</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- TABEL LAPORAN -->
 <div class="card border-0 shadow-sm rounded-3">
@@ -146,7 +126,6 @@ function fmtJam($desimal) {
                         <th class="text-center py-3">Sesi Lembur</th>
                         <th class="text-center py-3">Total Durasi</th>
                         <th class="text-center py-3">Rata-rata / Sesi</th>
-                        <th class="text-end py-3">Uang Makan Lembur</th>
                         <th class="text-center pe-4 py-3">Detail</th>
                     </tr>
                 </thead>
@@ -170,22 +149,16 @@ function fmtJam($desimal) {
                                 </span>
                             </td>
                             <td class="text-center">
-                                <div class="fw-bold text-dark">{!! fmtJam($row->total_durasi) !!}</div>
+                                <div class="fw-bold text-dark">{!! fmtHari($row->total_durasi) !!}</div>
                                 <div class="progress mt-1 mx-auto" style="height:5px;width:80px;" title="{{ $pctDurasi }}% dari total lembur">
                                     <div class="progress-bar bg-danger" style="width:{{ $pctDurasi }}%"></div>
                                 </div>
                                 <small class="text-muted">{{ $pctDurasi }}% dari total</small>
                             </td>
                             <td class="text-center">
-                                <span class="text-secondary small">{!! fmtJam($rataRata) !!}</span>
+                                <span class="text-secondary small">{!! fmtHari($rataRata) !!}</span>
                             </td>
-                            <td class="text-end">
-                                @if ((float)$row->total_uang_makan > 0)
-                                    <strong class="text-success">Rp {{ number_format($row->total_uang_makan, 0, ',', '.') }}</strong>
-                                @else
-                                    <span class="text-muted small">Rp 0 <br><em>(selesai sebelum 20:00)</em></span>
-                                @endif
-                            </td>
+
                             <td class="text-center pe-4">
                                 <button type="button" class="btn btn-outline-dark btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#modalDetail"
@@ -215,12 +188,8 @@ function fmtJam($desimal) {
                     <tr style="background:#f0f6ff; border-top:2px solid #dee2e6;">
                         <td colspan="2" class="ps-4 py-3 fw-bold text-muted">TOTAL ({{ count($laporan) }} Pegawai)</td>
                         <td class="text-center py-3 fw-bold">{{ number_format($grandSesi) }} Sesi</td>
-                        <td class="text-center py-3 fw-bold text-dark">{!! fmtJam($grandDurasi) !!}</td>
+                        <td class="text-center py-3 fw-bold text-dark">{!! fmtHari($grandDurasi) !!}</td>
                         <td></td>
-                        <td class="text-end py-3">
-                            <div class="text-muted small fw-semibold">GRAND TOTAL UANG MAKAN</div>
-                            <div class="fs-5 fw-bold text-success">Rp {{ number_format($grandUangMakan, 0, ',', '.') }}</div>
-                        </td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -228,13 +197,7 @@ function fmtJam($desimal) {
             </table>
         </div>
     </div>
-    @if (count($laporan) > 0)
-    <div class="card-footer bg-light text-muted small py-2 px-4 border-top">
-        <i class="bi bi-info-circle me-1"></i>
-        Uang makan lembur (<strong>Rp 15.000</strong>) hanya diberikan jika jam selesai lembur melewati pukul <strong>20:00</strong>,
-        sesuai aturan SPL yang berlaku di perusahaan.
-    </div>
-    @endif
+
 </div>
 
 <!-- MODAL DETAIL PER HARI -->
@@ -257,10 +220,6 @@ function fmtJam($desimal) {
                 </div>
             </div>
             <div class="modal-footer bg-light border-top">
-                <small class="text-muted me-auto">
-                    <i class="bi bi-lightbulb me-1"></i>
-                    Uang makan lembur dibayarkan jika jam selesai &gt; 20:00
-                </small>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
@@ -318,10 +277,9 @@ function fmtJam($desimal) {
         <thead class="text-center">
             <tr>
                 <th width="5%">NO</th>
-                <th width="40%">DESKRIPSI</th>
+                <th width="50%">DESKRIPSI</th>
                 <th width="15%">TOTAL SESI</th>
-                <th width="20%">TOTAL DURASI</th>
-                <th width="20%">UANG MAKAN</th>
+                <th width="30%">TOTAL DURASI</th>
             </tr>
         </thead>
         <tbody>
@@ -330,17 +288,11 @@ function fmtJam($desimal) {
                 <td class="text-center">{{ $index + 1 }}</td>
                 <td>{{ $row->nama_pegawai }} - Lembur</td>
                 <td class="text-center">{{ (int)$row->total_sesi }}</td>
-                <td class="text-center">{!! fmtJam($row->total_durasi) !!}</td>
-                <td class="text-end">Rp. {{ number_format($row->total_uang_makan, 0, ',', '.') }}</td>
+                <td class="text-center">{!! fmtHari($row->total_durasi) !!}</td>
             </tr>
             @endforeach
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4" class="text-center fw-bold">Total Uang Makan Lembur</td>
-                <td class="text-end fw-bold">Rp. {{ number_format($grandUangMakan, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
+
     </table>
 
     <div class="row mt-4" style="font-size: 11px;">
@@ -382,9 +334,6 @@ function loadDetail(idPegawai, nama, bulan, tahun) {
             let totalDurasi = 0, totalUM = 0;
             let rows = data.map((r, idx) => {
                 totalUM += parseFloat(r.uang_makan);
-                const umTxt = r.uang_makan > 0
-                    ? `<span class="badge bg-success-subtle text-success border border-success-subtle">Rp ${parseInt(r.uang_makan).toLocaleString('id-ID')}</span>`
-                    : `<span class="text-muted small">—</span>`;
                 return `<tr>
                     <td class="ps-3 text-muted small">${idx+1}</td>
                     <td class="fw-semibold">${r.tanggal}</td>
@@ -393,7 +342,6 @@ function loadDetail(idPegawai, nama, bulan, tahun) {
                     <td class="text-center fw-semibold text-success">${r.jam_mulai}</td>
                     <td class="text-center fw-semibold text-primary">${r.jam_selesai}</td>
                     <td class="text-center"><span class="badge bg-dark text-white">${r.durasi}</span></td>
-                    <td class="text-center">${umTxt}</td>
                     <td class="pe-3 text-muted small">${r.catatan}</td>
                 </tr>`;
             }).join('');
@@ -401,7 +349,6 @@ function loadDetail(idPegawai, nama, bulan, tahun) {
             let html = `
             <div class="p-3 bg-light border-bottom d-flex gap-4">
                 <div><strong class="text-danger">${data.length}</strong> <span class="text-muted small">Sesi Lembur</span></div>
-                <div><strong class="text-dark">Rp ${totalUM.toLocaleString('id-ID')}</strong> <span class="text-muted small">Uang Makan</span></div>
             </div>
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0">
@@ -414,7 +361,6 @@ function loadDetail(idPegawai, nama, bulan, tahun) {
                             <th class="text-center">Jam Mulai</th>
                             <th class="text-center">Jam Selesai</th>
                             <th class="text-center">Durasi</th>
-                            <th class="text-center">Uang Makan</th>
                             <th class="pe-3">Catatan</th>
                         </tr>
                     </thead>

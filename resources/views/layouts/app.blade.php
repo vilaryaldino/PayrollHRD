@@ -694,8 +694,8 @@
                     <div class="submenu list-group">
                         <a href="{{ route('jadwal.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('jadwal.*') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Jadwal Kerja</a>
                         <a href="{{ route('absensi.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('absensi.*') ? 'active' : '' }}"><i class="bi bi-person-check"></i> Data Absen</a>
-                        <a href="{{ route('lembur.register') }}" class="list-group-item list-group-item-action {{ request()->routeIs('lembur.register') ? 'active' : '' }}"><i class="bi bi-moon-stars"></i> Register Lembur</a>
-                        <!-- <a href="{{ route('spl.create') }}" class="list-group-item list-group-item-action {{ request()->routeIs('spl.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-plus"></i> Input SPL</a> -->
+                        <a href="{{ route('lembur.register') }}" class="list-group-item list-group-item-action {{ request()->routeIs('lembur.register') ? 'active' : '' }}"><i class="bi bi-moon-stars"></i> Register Lembur  Harian</a>
+                        <a href="{{ route('lembur.register_otomatis') }}" class="list-group-item list-group-item-action {{ request()->routeIs('lembur.register_otomatis') ? 'active' : '' }}"><i class="bi bi-robot"></i> Register Lembur Kantor</a>
                     </div>
                 </div>
 
@@ -708,6 +708,7 @@
                     <div class="submenu list-group">
                         <a href="{{ route('laporan.uang-makan') }}" class="list-group-item list-group-item-action {{ request()->routeIs('laporan.uang-makan') ? 'active' : '' }}"><i class="bi bi-cash-stack"></i> Uang Makan</a>
                         <a href="{{ route('laporan.lembur') }}" class="list-group-item list-group-item-action {{ request()->routeIs('laporan.lembur') ? 'active' : '' }}"><i class="bi bi-file-earmark-bar-graph"></i> Laporan Lembur</a>
+                        <a href="{{ route('laporan.rekap') }}" class="list-group-item list-group-item-action {{ request()->routeIs('laporan.rekap') ? 'active' : '' }}"><i class="bi bi-file-earmark-spreadsheet"></i> Rekapitulasi SPL</a>
                     </div>
                 </div>
             </div>

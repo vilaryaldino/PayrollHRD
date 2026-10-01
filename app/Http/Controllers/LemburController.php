@@ -15,6 +15,7 @@ class LemburController extends Controller
 
         $daftarLembur = RegisterLembur::select('t_register_lembur.*', 'M_PEGAWAI.NM_PEGAWAI as pegawai_master')
             ->leftJoin('M_PEGAWAI', 't_register_lembur.id_pegawai', '=', 'M_PEGAWAI.ID_PEGAWAI')
+            ->where('t_register_lembur.kategori', 'Harian')
             ->orderBy('t_register_lembur.tanggal', 'desc')
             ->orderBy('t_register_lembur.id', 'desc')
             ->get();
@@ -43,6 +44,110 @@ class LemburController extends Controller
         ];
 
         return view('lembur.register', compact('pegawaiList', 'daftarLembur', 'summaryData', 'targetId'));
+    }
+
+    public function registerOtomatis(Request $request)
+    {
+        $pegawaiList = DB::table('M_PEGAWAI')->where('IS_AKTIF', 1)->orderBy('NM_PEGAWAI')->get();
+
+        $daftarLembur = RegisterLembur::select('t_register_lembur.*', 'M_PEGAWAI.NM_PEGAWAI as pegawai_master')
+            ->leftJoin('M_PEGAWAI', 't_register_lembur.id_pegawai', '=', 'M_PEGAWAI.ID_PEGAWAI')
+            ->where('t_register_lembur.kategori', 'Kantor')
+            ->orderBy('t_register_lembur.tanggal', 'desc')
+            ->orderBy('t_register_lembur.id', 'desc')
+            ->get();
+
+        $targetId = $request->query('last_id');
+        $displaySummary = null;
+
+        if ($targetId) {
+            $displaySummary = $daftarLembur->firstWhere('id', $targetId);
+        }
+
+        if (!$displaySummary && $daftarLembur->isNotEmpty()) {
+            $displaySummary = $daftarLembur->first();
+        }
+
+        $summaryData = [
+            'pegawai'       => $displaySummary ? ($displaySummary->nama_pegawai ?: ($displaySummary->pegawai_master ?? '—')) : '—',
+            'tanggal'       => $displaySummary ? $displaySummary->tanggal : date('Y-m-d'),
+            'jam_mulai'     => $displaySummary ? substr($displaySummary->jam_mulai, 0, 5) : '—',
+            'jam_selesai'   => $displaySummary ? substr($displaySummary->jam_selesai, 0, 5) : '—',
+            'hari'          => $displaySummary ? $displaySummary->hari : 'Hari Kerja',
+            'jenis_spl'     => $displaySummary ? $displaySummary->jenis_spl : 'SPL Jam Lembur',
+            'catatan'       => $displaySummary ? ($displaySummary->catatan ?? '') : '',
+            'durasi_lembur' => $displaySummary ? (float)$displaySummary->durasi_lembur : 0.00,
+            'uang_makan'    => $displaySummary ? (float)$displaySummary->uang_makan : 0.00,
+        ];
+
+        return view('lembur.register_otomatis', compact('pegawaiList', 'daftarLembur', 'summaryData', 'targetId'));
+    }
+
+    public function fetchPresensi(Request $request)
+    {
+        $idPegawai = $request->input('id_pegawai');
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalSelesai = $request->input('tanggal_selesai');
+
+        $pegawai = DB::table('M_PEGAWAI')->where('ID_PEGAWAI', $idPegawai)->first();
+        
+        $absensi = collect();
+        if ($pegawai) {
+            $idMesin = $pegawai->ID_PEGAWAI_MESIN;
+            
+            $absensi = DB::table('t_data_absensi')
+                ->where(function ($q) use ($idPegawai, $idMesin) {
+                    $q->where('id_pegawai', $idMesin)
+                      ->orWhere('id_pegawai_mesin', $idMesin)
+                      ->orWhere('id_pegawai', $idPegawai);
+                })
+                ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+                ->orderBy('tanggal', 'asc')
+                ->get();
+        }
+
+        $hariKerjaQty = 0;
+        $totalLA = 0;
+        $totalLB = 0;
+        $uangMakanQty = 0;
+        $uangMakanLemburQty = 0;
+
+        foreach ($absensi as $row) {
+            if ($row->jam_kehadiran) {
+                $hariKerjaQty++;
+                $uangMakanQty++;
+            }
+
+            if ($row->jam_kehadiran && $row->jam_kepulangan) {
+                $kehadiranTime = strtotime($row->tanggal . ' ' . $row->jam_kehadiran);
+                $kepulanganTime = strtotime($row->tanggal . ' ' . $row->jam_kepulangan);
+                $jam17Time = strtotime($row->tanggal . ' 17:00:00');
+                $jam18Time = strtotime($row->tanggal . ' 18:00:00');
+                $jam19Time = strtotime($row->tanggal . ' 19:00:00');
+                
+                if ($kepulanganTime >= strtotime($row->tanggal . ' 17:01:00')) {
+                    // Mutually exclusive: 1 Day of Lembur A OR 1 Day of Lembur B
+                    if ($kepulanganTime <= $jam18Time) {
+                        $totalLA += 1;
+                    } else {
+                        $totalLB += 1;
+                    }
+                }
+                
+                if ($kepulanganTime >= $jam19Time) {
+                    $uangMakanLemburQty++;
+                }
+            }
+        }
+
+        return response()->json([
+            'hari_kerja_qty' => $hariKerjaQty,
+            'uang_makan_qty' => $uangMakanQty,
+            'lembur_a_qty' => $totalLA,
+            'lembur_b_qty' => $totalLB,
+            'uang_makan_lembur_qty' => $uangMakanLemburQty,
+            'data_absensi' => $absensi
+        ]);
     }
 
     public function store(Request $request)
@@ -120,6 +225,7 @@ class LemburController extends Controller
         $catatan = !empty($catatanInput) ? $catatanInput : $catatanDefault;
 
         $lembur = RegisterLembur::create([
+            'kategori' => $request->input('kategori', 'Harian'),
             'id_pegawai' => $idPegawai,
             'nama_pegawai' => $namaKaryawan,
             'tanggal' => $tanggal,
@@ -132,7 +238,9 @@ class LemburController extends Controller
             'uang_makan' => $totalUangMakan
         ]);
 
-        return redirect()->route('lembur.register', ['last_id' => $lembur->id])
+        $routeRedirect = $request->input('kategori') == 'Kantor' ? 'lembur.register_otomatis' : 'lembur.register';
+
+        return redirect()->route($routeRedirect, ['last_id' => $lembur->id])
             ->with('success', "Data SPL Lembur untuk {$namaKaryawan} berhasil disimpan (Total IDR: Rp " . number_format($totalIdr, 0, ',', '.') . ")!");
     }
 
@@ -263,6 +371,74 @@ class LemburController extends Controller
         ];
 
         return view('laporan.spl-rekap', compact('data'));
+    }
+
+    public function syncLemburOtomatis(Request $request)
+    {
+        $tanggalMulai = $request->input('tanggal_mulai', date('Y-m-01'));
+        $tanggalSelesai = $request->input('tanggal_selesai', date('Y-m-t'));
+        
+        $absensi = DB::table('t_data_absensi')
+            ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+            ->whereNotNull('jam_kehadiran')
+            ->whereNotNull('jam_kepulangan')
+            ->get();
+            
+        $syncCount = 0;
+        
+        foreach ($absensi as $row) {
+            $kehadiranTime = strtotime($row->tanggal . ' ' . $row->jam_kehadiran);
+            $kepulanganTime = strtotime($row->tanggal . ' ' . $row->jam_kepulangan);
+            $jam17Time = strtotime($row->tanggal . ' 17:00:00');
+            $jam18Time = strtotime($row->tanggal . ' 18:00:00');
+            $jam19Time = strtotime($row->tanggal . ' 19:00:00');
+            
+            $dayOfWeek = date('N', strtotime($row->tanggal));
+            $isWeekend = ($dayOfWeek >= 6);
+            
+            // HARI KERJA (Senin - Jumat)
+            if (!$isWeekend) {
+                if ($kepulanganTime > strtotime($row->tanggal . ' 17:00:00')) {
+                    $jenisSpl = '';
+                    $durasiLembur = 1; // 1 Hari Lembur
+                    
+                    // Kriteria Mutually Exclusive Lembur A / B (Per Hari)
+                    if ($kepulanganTime <= $jam18Time) {
+                        $jenisSpl = 'Lembur A';
+                    } else {
+                        $jenisSpl = 'Lembur B';
+                    }
+                    
+                    $uangMakan = ($kepulanganTime >= $jam19Time) ? 15000 : 0;
+                    
+                    if ($jenisSpl != '') {
+                        // Resolve id_pegawai from M_PEGAWAI
+                        $peg = DB::table('M_PEGAWAI')->where('ID_PEGAWAI_MESIN', $row->id_pegawai)->first();
+                        $realIdPegawai = $peg ? $peg->ID_PEGAWAI : $row->id_pegawai;
+                        $namaKaryawan = $peg ? $peg->NM_PEGAWAI : $row->nama_pegawai;
+                        
+                        $hari = ['Senin','Selasa','Rabu','Kamis','Jumat'][$dayOfWeek - 1];
+                        
+                        RegisterLembur::updateOrCreate(
+                            ['id_pegawai' => $realIdPegawai, 'tanggal' => $row->tanggal, 'kategori' => 'Kantor'],
+                            [
+                                'nama_pegawai' => $namaKaryawan,
+                                'hari' => $hari,
+                                'jam_mulai' => '17:00:00',
+                                'jam_selesai' => $row->jam_kepulangan,
+                                'jenis_spl' => $jenisSpl,
+                                'catatan' => 'Auto Sync ' . $jenisSpl . ' (1 Hari)',
+                                'durasi_lembur' => 1,
+                                'uang_makan' => $uangMakan
+                            ]
+                        );
+                        $syncCount++;
+                    }
+                }
+            }
+        }
+        
+        return back()->with('success', "Proses sinkronisasi berhasil. Total {$syncCount} data lembur (Mutually Exclusive) telah di-generate/di-update.");
     }
 
     public function destroy($id)

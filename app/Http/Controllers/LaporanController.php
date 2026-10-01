@@ -20,9 +20,10 @@ class LaporanController extends Controller
         $bulan = $request->input('bulan', date('m'));
         $tahun = $request->input('tahun', date('Y'));
 
-        // Query untuk menghitung total kehadiran (Group by ID Pegawai & Nama)
+        // Query untuk menghitung total kehadiran dan uang makan lembur
         $laporan = DataAbsensi::select('id_pegawai', 'nama_pegawai')
-            ->selectRaw('COUNT(*) as total_hari_hadir')
+            ->selectRaw('COUNT(jam_kehadiran) as total_hari_hadir')
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '19:00:00' THEN 1 ELSE 0 END) as total_um_lembur")
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->whereNotNull('jam_kehadiran') // Syarat dihitung hadir
@@ -31,7 +32,9 @@ class LaporanController extends Controller
 
         // Hitung nominal uang makan
         $laporan->map(function ($item) {
-            $item->total_uang_makan = $item->total_hari_hadir * self::TARIF_UANG_MAKAN;
+            $item->nominal_um = $item->total_hari_hadir * self::TARIF_UANG_MAKAN;
+            $item->nominal_uml = $item->total_um_lembur * self::TARIF_UANG_MAKAN;
+            $item->total_uang_makan = $item->nominal_um + $item->nominal_uml;
             return $item;
         });
 
@@ -82,10 +85,7 @@ class LaporanController extends Controller
             ->get();
 
         $result = $details->map(function ($row) {
-            $mnt = (int)round((float)$row->durasi_lembur * 60);
-            $jj = intdiv($mnt, 60);
-            $mm = $mnt % 60;
-            $dur = ($jj > 0 && $mm > 0) ? "{$jj}j {$mm}m" : ($jj > 0 ? "{$jj} jam" : "{$mm} menit");
+            $dur = (float)$row->durasi_lembur . " Hari";
             return [
                 'tanggal' => Carbon::parse($row->tanggal)->format('d/m/Y'),
                 'hari' => $row->hari,
@@ -99,5 +99,105 @@ class LaporanController extends Controller
         });
 
         return response()->json($result);
+    }
+
+    public function rekapitulasi(Request $request)
+    {
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        $laporan = DataAbsensi::select('id_pegawai', 'nama_pegawai')
+            ->selectRaw('COUNT(jam_kehadiran) as total_hari_kerja')
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '17:01:00' AND jam_kepulangan <= '18:00:00' THEN 1 ELSE 0 END) as total_la")
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan > '18:00:00' THEN 1 ELSE 0 END) as total_lb")
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '19:00:00' THEN 1 ELSE 0 END) as total_uml")
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->whereNotNull('jam_kehadiran')
+            ->groupBy('id_pegawai', 'nama_pegawai')
+            ->get();
+
+        $laporan->map(function ($item) {
+            $item->amt_la = $item->total_la * 29200;
+            $item->amt_lb = $item->total_lb * 34400;
+            $item->amt_um = $item->total_hari_kerja * 15000;
+            $item->amt_uml = $item->total_uml * 15000;
+            $item->total_idr = $item->amt_la + $item->amt_lb + $item->amt_um + $item->amt_uml;
+            return $item;
+        });
+
+        return view('laporan.rekapitulasi', compact('laporan', 'bulan', 'tahun'));
+    }
+
+    public function cetakRekap(Request $request, $id_pegawai)
+    {
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        $pegawai = DB::table('M_PEGAWAI')->where('ID_PEGAWAI', $id_pegawai)->first();
+        if (!$pegawai) abort(404);
+
+        $absen = DataAbsensi::selectRaw('COUNT(jam_kehadiran) as total_hari_kerja')
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '17:01:00' AND jam_kepulangan <= '18:00:00' THEN 1 ELSE 0 END) as total_la")
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan > '18:00:00' THEN 1 ELSE 0 END) as total_lb")
+            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '19:00:00' THEN 1 ELSE 0 END) as total_uml")
+            ->where('id_pegawai', $id_pegawai)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->whereNotNull('jam_kehadiran')
+            ->first();
+
+        $total_hari_kerja = $absen->total_hari_kerja ?? 0;
+        $total_la = $absen->total_la ?? 0;
+        $total_lb = $absen->total_lb ?? 0;
+        $total_uml = $absen->total_uml ?? 0;
+
+        $startDate = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth()->format('Y-m-d');
+        $endDate = Carbon::createFromDate($tahun, $bulan, 1)->endOfMonth()->format('Y-m-d');
+
+        $data = [
+            'periode' => "$startDate s/d $endDate",
+            'karyawan' => [
+                'no' => $pegawai->ID_PEGAWAI,
+                'nama' => $pegawai->NM_PEGAWAI
+            ],
+            'lokasi' => 'KANTOR',
+            'hari_kerja' => ['jam' => $total_hari_kerja],
+            'lembur_a' => [
+                'qty' => $total_la,
+                'rate' => 29200,
+                'amount' => $total_la * 29200
+            ],
+            'lembur_b' => [
+                'qty' => $total_lb,
+                'rate' => 34400,
+                'amount' => $total_lb * 34400
+            ],
+            'luar_kota' => [
+                'qty' => 0,
+                'rate' => 30000,
+                'amount' => 0
+            ],
+            'uang_makan' => [
+                'qty' => $total_hari_kerja,
+                'rate' => 15000,
+                'amount' => $total_hari_kerja * 15000
+            ],
+            'uang_makan_lembur' => [
+                'qty' => $total_uml,
+                'rate' => 15000,
+                'amount' => $total_uml * 15000
+            ],
+        ];
+
+        $totalIdr = $data['lembur_a']['amount'] + 
+                    $data['lembur_b']['amount'] + 
+                    $data['luar_kota']['amount'] + 
+                    $data['uang_makan']['amount'] + 
+                    $data['uang_makan_lembur']['amount'];
+                    
+        $data['total_idr'] = $totalIdr;
+
+        return view('laporan.spl-rekap', compact('data'));
     }
 }

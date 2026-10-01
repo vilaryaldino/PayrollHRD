@@ -140,8 +140,8 @@
     <!-- Header & Breadcrumbs -->
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <h2 class="h3 text-gray-800 m-0 fw-bold" style="font-size:1.35rem;">Register Lembur & Surat Perintah Lembur (SPL)</h2>
-            <small class="text-muted" style="font-size:.78rem;">Sistem kalkulasi rekapitulasi SPL: Hari Kerja, Lembur A (LA), Lembur B (LB), Luar Kota, dan Uang Makan</small>
+            <h2 class="h3 text-gray-800 m-0 fw-bold" style="font-size:1.35rem;">Register Lembur & SPL (Otomatis)</h2>
+            <small class="text-muted" style="font-size:.78rem;">Sistem kalkulasi rekapitulasi SPL otomatis berdasarkan data presensi pegawai.</small>
         </div>
         <div class="d-flex align-items-center gap-2">
             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
@@ -186,12 +186,12 @@
             <div class="card lembur-card h-100">
                 <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="m-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Form Register & Kalkulasi SPL</h5>
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1"><i class="bi bi-calculator me-1"></i> Logika SPL</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1"><i class="bi bi-cloud-download me-1"></i> Mode Otomatis</span>
                 </div>
                 <div class="card-body p-4 lembur-form">
                     <form method="POST" action="{{ route('spl.calculate') }}" id="formLembur">
                         @csrf
-                        <input type="hidden" name="kategori" value="Harian">
+                        <input type="hidden" name="kategori" value="Kantor">
 
                         <!-- SECTION 1: DATA KARYAWAN & PERIODE -->
                         <div class="lembur-section-title">
@@ -216,14 +216,25 @@
 
                         <!-- Periode & Lokasi -->
                         <div class="row g-3 mb-3">
-                            <div class="col-md-7">
-                                <label for="periode" class="form-label">Periode Laporan <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="periode" id="periode" value="{{ old('periode', '01 - 31 Agustus 2026') }}" placeholder="Contoh: 01 - 31 Agustus 2026" required>
+                            <div class="col-md-3">
+                                <label for="tanggal_mulai" class="form-label">Tgl Mulai <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="tanggal_mulai" id="tanggal_mulai" required>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-3">
+                                <label for="tanggal_selesai" class="form-label">Tgl Selesai <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="tanggal_selesai" id="tanggal_selesai" required>
+                            </div>
+                            <div class="col-md-3">
                                 <label for="lokasi" class="form-label">Lokasi <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="lokasi" id="lokasi" value="{{ old('lokasi', 'KANTOR') }}" required>
                             </div>
+                            <div class="col-md-3">
+                                <label class="form-label d-block">&nbsp;</label>
+                                <button type="button" class="btn btn-primary w-100 fw-bold shadow-sm" id="btnTarikData" style="font-size: .8rem;">
+                                    <i class="bi bi-cloud-download me-1"></i> Tarik Presensi
+                                </button>
+                            </div>
+                            <input type="hidden" name="periode" id="periode" value="">
                         </div>
 
                         <!-- Nama Karyawan & No Karyawan -->
@@ -238,116 +249,23 @@
                             </div>
                         </div>
 
-                        <!-- SECTION 2: DETAIL LEMBUR & NOMINAL -->
-                        <div class="lembur-section-title">
-                            <i class="bi bi-clock-history text-warning"></i> Detail Hari Kerja & Lembur
-                        </div>
-
-                        <!-- Total Hari Kerja (J A M) -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="hari_kerja_qty" class="form-label">Total Hari Kerja (J A M) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="hari_kerja_qty" id="hari_kerja_qty" value="{{ old('hari_kerja_qty', 19) }}" min="0" required>
-                                    <span class="input-group-text">Jam</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lembur A (LA) -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="lembur_a_qty" class="form-label">Jumlah Pegawai Lembur A (LA) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="lembur_a_qty" id="lembur_a_qty" value="{{ old('lembur_a_qty', 2) }}" min="0" required>
-                                    <span class="input-group-text">Org/Jam</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lembur_a_rate" class="form-label">Nominal Lembur A <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" name="lembur_a_rate" id="lembur_a_rate" value="{{ old('lembur_a_rate', 29200) }}" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lembur B (LB) -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="lembur_b_qty" class="form-label">Jumlah Pegawai Lembur B (LB) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="lembur_b_qty" id="lembur_b_qty" value="{{ old('lembur_b_qty', 4) }}" min="0" required>
-                                    <span class="input-group-text">Org/Jam</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lembur_b_rate" class="form-label">Nominal Lembur B <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" name="lembur_b_rate" id="lembur_b_rate" value="{{ old('lembur_b_rate', 34400) }}" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Luar Kota -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label for="luar_kota_qty" class="form-label">Jumlah Pegawai Luar Kota <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="luar_kota_qty" id="luar_kota_qty" value="{{ old('luar_kota_qty', 0) }}" min="0" required>
-                                    <span class="input-group-text">Org/Hari</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="luar_kota_rate" class="form-label">Nominal Luar Kota <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" name="luar_kota_rate" id="luar_kota_rate" value="{{ old('luar_kota_rate', 30000) }}" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 3: UANG MAKAN -->
-                        <div class="lembur-section-title">
-                            <i class="bi bi-cup-hot text-success"></i> Hak Uang Makan
-                        </div>
-
-                        <!-- Uang Makan Harian -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="uang_makan_qty" class="form-label">Jumlah Pegawai/Hari (Uang Makan) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="uang_makan_qty" id="uang_makan_qty" value="{{ old('uang_makan_qty', 19) }}" min="0" required>
-                                    <span class="input-group-text">Hari</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="uang_makan_rate" class="form-label">Nominal Uang Makan <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" name="uang_makan_rate" id="uang_makan_rate" value="{{ old('uang_makan_rate', 15000) }}" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Uang Makan Lembur -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="uang_makan_lembur_qty" class="form-label">Jumlah Pegawai (Uang Makan Lembur) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="uang_makan_lembur_qty" id="uang_makan_lembur_qty" value="{{ old('uang_makan_lembur_qty', 2) }}" min="0" required>
-                                    <span class="input-group-text">Org</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="uang_makan_lembur_rate" class="form-label">Nominal Uang Makan Lembur <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" name="uang_makan_lembur_rate" id="uang_makan_lembur_rate" value="{{ old('uang_makan_lembur_rate', 15000) }}" min="0" required>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- HIDDEN FIELDS: Data Kalkulasi Otomatis (Tidak ditampilkan di UI) -->
+                        <input type="hidden" name="hari_kerja_qty" id="hari_kerja_qty" value="{{ old('hari_kerja_qty', 0) }}">
+                        
+                        <input type="hidden" name="lembur_a_qty" id="lembur_a_qty" value="{{ old('lembur_a_qty', 0) }}">
+                        <input type="hidden" name="lembur_a_rate" id="lembur_a_rate" value="{{ old('lembur_a_rate', 29200) }}">
+                        
+                        <input type="hidden" name="lembur_b_qty" id="lembur_b_qty" value="{{ old('lembur_b_qty', 0) }}">
+                        <input type="hidden" name="lembur_b_rate" id="lembur_b_rate" value="{{ old('lembur_b_rate', 34400) }}">
+                        
+                        <input type="hidden" name="luar_kota_qty" id="luar_kota_qty" value="{{ old('luar_kota_qty', 0) }}">
+                        <input type="hidden" name="luar_kota_rate" id="luar_kota_rate" value="{{ old('luar_kota_rate', 30000) }}">
+                        
+                        <input type="hidden" name="uang_makan_qty" id="uang_makan_qty" value="{{ old('uang_makan_qty', 0) }}">
+                        <input type="hidden" name="uang_makan_rate" id="uang_makan_rate" value="{{ old('uang_makan_rate', 15000) }}">
+                        
+                        <input type="hidden" name="uang_makan_lembur_qty" id="uang_makan_lembur_qty" value="{{ old('uang_makan_lembur_qty', 0) }}">
+                        <input type="hidden" name="uang_makan_lembur_rate" id="uang_makan_lembur_rate" value="{{ old('uang_makan_lembur_rate', 15000) }}">
 
                         <!-- Catatan / Keterangan -->
                         <div class="mb-4">
@@ -361,7 +279,7 @@
                             <strong>Aturan Tarif Perusahaan:</strong> Lembur A: <strong>Rp 29.200</strong>, Lembur B: <strong>Rp 34.400</strong>, Luar Kota: <strong>Rp 30.000</strong>, Uang Makan: <strong>Rp 15.000</strong>/hari.
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4">
                             <button type="submit" formaction="{{ route('spl.calculate') }}" formtarget="_blank" class="btn btn-outline-primary fw-bold px-3 py-2 shadow-sm">
                                 <i class="bi bi-printer me-2"></i> Preview Cetak Slip SPL
                             </button>
@@ -370,6 +288,34 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- TABEL RAW PRESENSI -->
+            <div class="card lembur-card mt-3" id="rawPresensiContainer" style="display: none;">
+                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold text-dark" style="font-size: .95rem;"><i class="bi bi-list-columns-reverse text-primary me-2"></i>Rincian Kehadiran & Kalkulasi Harian</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover table-sm mb-0 align-middle" style="font-size: .8rem;">
+                            <thead class="table-light text-muted" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th class="ps-3">Tanggal</th>
+                                    <th>Masuk</th>
+                                    <th>Pulang</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Durasi Lembur</th>
+                                    <th class="text-center">LA (Jam)</th>
+                                    <th class="text-center">LB (Jam)</th>
+                                    <th class="text-center">UM Lembur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rawPresensiBody">
+                                <!-- Data will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -529,8 +475,8 @@
     <div class="card lembur-card mt-4">
         <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <h5 class="m-0 fw-bold text-dark"><i class="bi bi-table me-2 text-primary"></i>Daftar Register Lembur</h5>
-                <small class="text-muted">Data transaksi tersimpan pada tabel <code>t_register_lembur</code></small>
+                <h5 class="m-0 fw-bold text-dark"><i class="bi bi-table me-2 text-primary"></i>Daftar Register Lembur Kantor</h5>
+                <small class="text-muted">Data transaksi tersimpan pada tabel <code>t_register_lembur</code> (Kategori: Kantor)</small>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-primary px-3 py-2"><i class="bi bi-database me-1"></i> Total {{ count($daftarLembur) }} Data</span>
@@ -544,7 +490,7 @@
                             <th style="width: 50px;">No</th>
                             <th>Pegawai</th>
                             <th>Tanggal & Hari</th>
-                            <th>Jam Kerja / Durasi</th>
+                            <th>Hari Kerja / Durasi</th>
                             <th>Jenis SPL</th>
 
                             <th>Catatan / Rincian</th>
@@ -566,7 +512,7 @@
                                 <td>
                                     <div>
                                         <span class="badge bg-warning bg-opacity-25 text-dark fw-bold">
-                                             <i class="bi bi-clock me-1"></i>{{ number_format($row->durasi_lembur, 1) }} jam
+                                             <i class="bi bi-calendar me-1"></i>{{ number_format($row->durasi_lembur, 0) }} Hari
                                         </span>
                                     </div>
                                     <small class="text-muted font-monospace">{{ substr($row->jam_mulai, 0, 5) }} - {{ substr($row->jam_selesai, 0, 5) }}</small>
@@ -599,7 +545,7 @@
                             <tr>
                                 <td colspan="8" class="text-center py-4 text-muted">
                                     <i class="bi bi-inbox fs-2 d-block mb-1 opacity-50"></i>
-                                    Belum ada data transaksi register lembur. Silakan isi form di atas.
+                                    Belum ada data transaksi register lembur kantor.
                                 </td>
                             </tr>
                         @endforelse
@@ -629,6 +575,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const uangMakanRate = document.getElementById('uang_makan_rate');
     const uangMakanLemburQty = document.getElementById('uang_makan_lembur_qty');
     const uangMakanLemburRate = document.getElementById('uang_makan_lembur_rate');
+
+    const btnTarikData = document.getElementById('btnTarikData');
+    const tanggalMulaiInput = document.getElementById('tanggal_mulai');
+    const tanggalSelesaiInput = document.getElementById('tanggal_selesai');
 
     // Summary Elements
     const summaryPegawai = document.getElementById('summaryPegawai');
@@ -664,6 +614,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const tableRateUML = document.getElementById('tableRateUML');
     const tableAmtUML = document.getElementById('tableAmtUML');
 
+    const rawPresensiContainer = document.getElementById('rawPresensiContainer');
+    const rawPresensiBody = document.getElementById('rawPresensiBody');
+
     function formatRupiah(num) {
         return 'Rp ' + Math.round(num || 0).toLocaleString('id-ID');
     }
@@ -671,7 +624,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function calculateLive() {
         const nama = namaKaryawanInput.value || 'John Doe';
         const noKaryawan = noKaryawanInput.value || 'KRY-001';
-        const periode = periodeInput.value || '01 - 31 Agustus 2026';
+        
+        let tglMulai = tanggalMulaiInput.value || '';
+        let tglSelesai = tanggalSelesaiInput.value || '';
+        let periode = '';
+        if(tglMulai && tglSelesai) {
+            periode = tglMulai + ' s/d ' + tglSelesai;
+        }
+        periodeInput.value = periode;
+
         const lokasi = lokasiInput.value || 'KANTOR';
 
         summaryPegawai.textContent = nama;
@@ -744,6 +705,120 @@ document.addEventListener('DOMContentLoaded', function () {
             if (no) noKaryawanInput.value = no;
         }
         calculateLive();
+    });
+
+    btnTarikData.addEventListener('click', function() {
+        const idPegawai = pegawaiSelect.value;
+        const tglMulai = tanggalMulaiInput.value;
+        const tglSelesai = tanggalSelesaiInput.value;
+
+        if (!idPegawai) {
+            alert('Silakan pilih pegawai terlebih dahulu!');
+            return;
+        }
+        if (!tglMulai || !tglSelesai) {
+            alert('Silakan tentukan tanggal mulai dan tanggal selesai!');
+            return;
+        }
+
+        btnTarikData.disabled = true;
+        btnTarikData.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Menarik...';
+
+        fetch("{{ route('lembur.fetch_presensi') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                id_pegawai: idPegawai,
+                tanggal_mulai: tglMulai,
+                tanggal_selesai: tglSelesai
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            hariKerjaQty.value = data.hari_kerja_qty;
+            uangMakanQty.value = data.uang_makan_qty;
+            lemburAQty.value = data.lembur_a_qty;
+            lemburBQty.value = data.lembur_b_qty;
+            uangMakanLemburQty.value = data.uang_makan_lembur_qty;
+            
+            // Populate Raw Presensi Table
+            rawPresensiBody.innerHTML = '';
+            if (data.data_absensi && data.data_absensi.length > 0) {
+                data.data_absensi.forEach(row => {
+                    let durasiText = '-';
+                    let laText = '-';
+                    let lbText = '-';
+                    let umLemburText = '<i class="bi bi-x-circle text-danger"></i>';
+                    let badgeClass = 'bg-secondary';
+                    let statusText = row.jam_kehadiran ? 'Hadir' : 'Absen';
+                    
+                    if (row.jam_kehadiran && row.jam_kepulangan) {
+                        badgeClass = 'bg-success';
+                        
+                        let masukDate = new Date(row.tanggal + 'T' + row.jam_kehadiran);
+                        let pulangDate = new Date(row.tanggal + 'T' + row.jam_kepulangan);
+                        let batasDate = new Date(row.tanggal + 'T17:00:00');
+                        let batasUMDate = new Date(row.tanggal + 'T19:00:00');
+                        
+                        let dayOfWeek = masukDate.getDay(); // 0 is Sunday, 6 is Saturday
+                        let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                        
+                        if (pulangDate >= batasUMDate) {
+                            umLemburText = '<i class="bi bi-check-circle-fill text-success"></i>';
+                        }
+                        
+                        let diffHrs = 0;
+                        let batasLembur = new Date(row.tanggal + 'T17:01:00');
+                        
+                        if (pulangDate >= batasLembur) {
+                            diffHrs = Math.floor((pulangDate - batasLembur) / 3600000);
+                            
+                            let batasBDate = new Date(row.tanggal + 'T18:00:00');
+                            if (pulangDate <= batasBDate) {
+                                laText = '1';
+                                lbText = '0';
+                                durasiText = '1 Hari';
+                            } else {
+                                laText = '0';
+                                lbText = '1';
+                                durasiText = '1 Hari';
+                            }
+                        }
+                    }
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="ps-3 fw-bold">${row.tanggal}</td>
+                        <td class="text-primary font-monospace">${row.jam_kehadiran || '-'}</td>
+                        <td class="text-danger font-monospace">${row.jam_kepulangan || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                        <td class="text-center font-monospace fw-bold">${durasiText}</td>
+                        <td class="text-center font-monospace text-primary fw-bold">${laText}</td>
+                        <td class="text-center font-monospace text-warning fw-bold">${lbText}</td>
+                        <td class="text-center fs-5">${umLemburText}</td>
+                    `;
+                    rawPresensiBody.appendChild(tr);
+                });
+                rawPresensiContainer.style.display = 'block';
+            } else {
+                rawPresensiContainer.style.display = 'none';
+            }
+            
+            calculateLive();
+            
+            alert('Data presensi berhasil ditarik: ' + data.hari_kerja_qty + ' hari kerja, ' + data.lembur_a_qty + ' jam LA, ' + data.lembur_b_qty + ' jam LB.');
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan saat menarik data presensi.');
+        })
+        .finally(() => {
+            btnTarikData.disabled = false;
+            btnTarikData.innerHTML = '<i class="bi bi-cloud-download me-1"></i> Tarik Presensi';
+        });
     });
 
     const formInputs = [

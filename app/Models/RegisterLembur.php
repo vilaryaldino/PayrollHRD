@@ -9,6 +9,7 @@ class RegisterLembur extends Model
     protected $table = 't_register_lembur';
 
     protected $fillable = [
+        'kategori',
         'id_pegawai',
         'nama_pegawai',
         'tanggal',

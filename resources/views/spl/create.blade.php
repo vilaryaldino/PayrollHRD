@@ -46,7 +46,7 @@
                                 <!-- Hari Kerja -->
                                 <div class="row mb-3 align-items-end">
                                     <div class="col-md-6">
-                                        <label class="form-label">Total Hari Kerja (J A M)</label>
+                                        <label class="form-label">Total Hari Kerja (H A R I)</label>
                                         <input type="number" class="form-control" name="hari_kerja_qty" value="19" required>
                                     </div>
                                 </div>
