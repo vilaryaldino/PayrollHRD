@@ -55,7 +55,9 @@
                         @forelse($laporan as $row)
                             <tr>
                                 <td class="ps-4">{{ $loop->iteration }}</td>
-                                <td><span class="badge bg-secondary">{{ $row->id_pegawai }}</span></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ $row->ID_PEGAWAI_MESIN ?: $row->id_pegawai }}</span>
+                                </td>
                                 <td class="fw-medium">{{ $row->nama_pegawai }}</td>
                                 <td class="text-center">
                                     <span class="fw-bold">{{ $row->total_hari_kerja }}</span><br>

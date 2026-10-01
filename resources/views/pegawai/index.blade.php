@@ -194,7 +194,6 @@ function getInitials($name) {
                 @php 
                     $isAktif = (int)$p->IS_AKTIF;
                     $initials = getInitials($p->NM_PEGAWAI);
-                    $empCode = 'EMP-' . str_pad($p->ID_PEGAWAI, 4, '0', STR_PAD_LEFT);
                 @endphp
                 <tr class="{{ !$isAktif ? 'opacity-75' : '' }}">
                     <td style="text-align: center; color: #94a3b8; font-size: 0.82rem;">
@@ -208,10 +207,10 @@ function getInitials($name) {
                             <div>
                                 <div class="table-user-name">{{ $p->NM_PEGAWAI }}</div>
                                 <div class="table-user-meta">
-                                    <span>{{ $empCode }}</span>
                                     @if($p->ID_PEGAWAI_MESIN)
-                                        <span class="mx-1">•</span>
                                         <span>PIN: {{ $p->ID_PEGAWAI_MESIN }}</span>
+                                    @else
+                                        <span class="text-danger">PIN Belum Diset</span>
                                     @endif
                                 </div>
                             </div>
@@ -288,7 +287,7 @@ function getInitials($name) {
                                     </div>
                                     <div>
                                         <h5 class="fw-bold mb-0 text-dark">{{ $p->NM_PEGAWAI }}</h5>
-                                        <div class="text-muted small">{{ $empCode }} &bull; PIN Mesin: {{ $p->ID_PEGAWAI_MESIN ?: '-' }}</div>
+                                        <div class="text-muted small">PIN Mesin: <span class="fw-bold">{{ $p->ID_PEGAWAI_MESIN ?: '-' }}</span></div>
                                     </div>
                                 </div>
                                 <div class="row g-3">

@@ -206,9 +206,9 @@
                                 @foreach ($pegawaiList as $peg)
                                     <option value="{{ $peg->ID_PEGAWAI }}" 
                                             data-nama="{{ $peg->NM_PEGAWAI }}"
-                                            data-no="{{ $peg->ID_PEGAWAI_MESIN ?: ('KRY-' . str_pad($peg->ID_PEGAWAI, 3, '0', STR_PAD_LEFT)) }}"
+                                            data-no="{{ $peg->ID_PEGAWAI_MESIN ?: '-' }}"
                                             {{ old('id_pegawai') == $peg->ID_PEGAWAI ? 'selected' : '' }}>
-                                        {{ $peg->NM_PEGAWAI }} ({{ $peg->ID_PEGAWAI_MESIN ?: ('KRY-' . str_pad($peg->ID_PEGAWAI, 3, '0', STR_PAD_LEFT)) }})
+                                        {{ $peg->NM_PEGAWAI }} (PIN: {{ $peg->ID_PEGAWAI_MESIN ?: '-' }})
                                     </option>
                                 @endforeach
                             </select>

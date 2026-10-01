@@ -106,15 +106,21 @@ class LaporanController extends Controller
         $bulan = $request->input('bulan', date('m'));
         $tahun = $request->input('tahun', date('Y'));
 
-        $laporan = DataAbsensi::select('id_pegawai', 'nama_pegawai')
-            ->selectRaw('COUNT(jam_kehadiran) as total_hari_kerja')
-            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '17:01:00' AND jam_kepulangan <= '18:00:00' THEN 1 ELSE 0 END) as total_la")
-            ->selectRaw("SUM(CASE WHEN jam_kepulangan > '18:00:00' THEN 1 ELSE 0 END) as total_lb")
-            ->selectRaw("SUM(CASE WHEN jam_kepulangan >= '19:00:00' THEN 1 ELSE 0 END) as total_uml")
-            ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
-            ->whereNotNull('jam_kehadiran')
-            ->groupBy('id_pegawai', 'nama_pegawai')
+        $laporan = DB::table('t_data_absensi')
+            ->leftJoin('M_PEGAWAI', 't_data_absensi.id_pegawai', '=', 'M_PEGAWAI.ID_PEGAWAI')
+            ->select(
+                't_data_absensi.id_pegawai', 
+                't_data_absensi.nama_pegawai',
+                'M_PEGAWAI.ID_PEGAWAI_MESIN'
+            )
+            ->selectRaw('COUNT(t_data_absensi.jam_kehadiran) as total_hari_kerja')
+            ->selectRaw("SUM(CASE WHEN t_data_absensi.jam_kepulangan >= '17:01:00' AND t_data_absensi.jam_kepulangan <= '18:00:00' THEN 1 ELSE 0 END) as total_la")
+            ->selectRaw("SUM(CASE WHEN t_data_absensi.jam_kepulangan > '18:00:00' THEN 1 ELSE 0 END) as total_lb")
+            ->selectRaw("SUM(CASE WHEN t_data_absensi.jam_kepulangan >= '19:00:00' THEN 1 ELSE 0 END) as total_uml")
+            ->whereMonth('t_data_absensi.tanggal', $bulan)
+            ->whereYear('t_data_absensi.tanggal', $tahun)
+            ->whereNotNull('t_data_absensi.jam_kehadiran')
+            ->groupBy('t_data_absensi.id_pegawai', 't_data_absensi.nama_pegawai', 'M_PEGAWAI.ID_PEGAWAI_MESIN')
             ->get();
 
         $laporan->map(function ($item) {
@@ -158,7 +164,7 @@ class LaporanController extends Controller
         $data = [
             'periode' => "$startDate s/d $endDate",
             'karyawan' => [
-                'no' => $pegawai->ID_PEGAWAI,
+                'no' => $pegawai->ID_PEGAWAI_MESIN ?: $pegawai->ID_PEGAWAI,
                 'nama' => $pegawai->NM_PEGAWAI
             ],
             'lokasi' => 'KANTOR',
