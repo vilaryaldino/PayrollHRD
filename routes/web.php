@@ -50,6 +50,8 @@ Route::middleware([\App\Http\Middleware\CheckAuth::class])->group(function () {
     Route::post('/absensi/import', [AbsensiController::class, 'importExcel'])->name('absensi.import');
     Route::post('/absensi/store', [AbsensiController::class, 'storeManual'])->name('absensi.store');
     Route::delete('/absensi/{id}', [AbsensiController::class, 'destroy'])->name('absensi.destroy');
+    Route::get('/absensi/periode', [AbsensiController::class, 'periode'])->name('absensi.periode');
+    Route::post('/absensi/dinas-luar', [AbsensiController::class, 'storeDinasLuar'])->name('absensi.dinas-luar.store');
 
     // Route Data Lembur
     Route::get('/lembur/register', [LemburController::class, 'register'])->name('lembur.register');
