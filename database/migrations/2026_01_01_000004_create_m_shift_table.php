@@ -24,6 +24,7 @@ return new class extends Migration
                 $table->timestamp('UPDATED_AT')->useCurrent()->useCurrentOnUpdate();
             });
         }
+        
     }
 
     public function down(): void

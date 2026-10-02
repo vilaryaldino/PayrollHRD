@@ -11,27 +11,50 @@ return new class extends Migration
         if (!Schema::hasTable('t_data_absensi')) {
             Schema::create('t_data_absensi', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('id_pegawai_mesin', 50)->comment('PIN / ID dari Mesin Fingerspot');
+                $table->string('id_pegawai_mesin', 50)
+                    ->comment('PIN / ID dari Mesin Fingerspot');
                 $table->unsignedInteger('id_pegawai')->nullable();
                 $table->string('nama_pegawai', 150);
                 $table->date('tanggal');
                 $table->time('jam_kehadiran')->nullable();
                 $table->time('jam_kepulangan')->nullable();
-                $table->string('lokasi_absen', 100)->nullable()->default('Kantor Pusat');
+                $table->string('lokasi_absen', 100)
+                    ->nullable()
+                    ->default('Kantor Pusat');
                 $table->string('departemen', 255)->nullable();
                 $table->string('posisi', 255)->nullable();
                 $table->string('sn_perangkat', 255)->nullable();
                 $table->string('status', 255)->nullable();
                 $table->string('keterangan', 255)->nullable();
                 $table->string('method', 255)->nullable();
+
                 $table->timestamp('created_at')->useCurrent();
-                $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+                $table->timestamp('updated_at')
+                    ->useCurrent()
+                    ->useCurrentOnUpdate();
 
                 // Indexes
                 $table->index('tanggal', 'idx_absen_tanggal');
                 $table->index('id_pegawai_mesin', 'idx_absen_mesin');
             });
+
+            return;
         }
+
+        // Tambahkan kolom yang belum tersedia
+        Schema::table('t_data_absensi', function (Blueprint $table) {
+            if (!Schema::hasColumn('t_data_absensi', 'departemen')) {
+                $table->string('departemen', 255)
+                    ->nullable()
+                    ->after('lokasi_absen');
+            }
+
+            if (!Schema::hasColumn('t_data_absensi', 'posisi')) {
+                $table->string('posisi', 255)
+                    ->nullable()
+                    ->after('departemen');
+            }
+        });
     }
 
     public function down(): void

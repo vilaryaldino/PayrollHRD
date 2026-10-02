@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('t_register_lembur', function (Blueprint $table) {
-            $table->string('kategori', 50)->default('Harian')->after('id');
+            if (!Schema::hasColumn('t_register_lembur', 'kategori')) {
+                $table->string('kategori', 50)->default('Harian')->after('id');
+            }
         });
     }
 

@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('m_libur_nasional', function (Blueprint $table) {
+        if (!Schema::hasTable('m_libur_nasional')) {
+            Schema::create('m_libur_nasional', function (Blueprint $table) {
             $table->increments('ID_LIBUR');
             $table->date('TANGGAL')->unique('UQ_LIBUR_TANGGAL');
             $table->string('KETERANGAN', 255)->comment('Deskripsi nama hari libur / cuti bersama');
@@ -20,7 +21,7 @@ return new class extends Migration
             $table->index(['TANGGAL', 'JENIS_LIBUR'], 'IDX_LIBUR_PERIODE');
         });
     }
-
+    }
     public function down(): void
     {
         Schema::dropIfExists('m_libur_nasional');
